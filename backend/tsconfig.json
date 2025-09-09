@@ -1,15 +1,20 @@
 ﻿{
-  compilerOptions: {
-    target: ES2022,
-    module: CommonJS,
-    outDir: dist,
-    rootDir: src,
-    strict: true,
-    esModuleInterop: true,
-    skipLibCheck: true,
-    forceConsistentCasingInFileNames: true,
-    resolveJsonModule: true,
-    noImplicitAny: true
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "outDir": "dist",
+    "rootDir": ".",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "noImplicitAny": true,
+    "sourceMap": true,
+    "inlineSources": true,
+    "types": ["node"]
   },
-  include: [src/**/*, tests/**/*]
+  "include": ["src/**/*", "tests/**/*"],
+  "exclude": ["node_modules", "dist"]
 }
