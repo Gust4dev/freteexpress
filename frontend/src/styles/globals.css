@@ -1,0 +1,47 @@
+/* Global tokens and utility helpers used across the app */
+:root {
+  --primary-500: #2563EB;
+  --primary-600: #1D4ED8;
+  --bg-light: #F8FAFC;
+  --bg-dark: #0F172A;
+  --muted: #94A3B8;
+}
+
+/* Ensure font stacks and base smoothing (index.css already imports fonts) */
+html, body, #root {
+  height: 100%;
+  background: var(--bg-light);
+}
+
+/* Dark mode helper (class applied on <html>) */
+:root.dark {
+  --bg: var(--bg-dark);
+}
+
+/* Reusable UI tokens */
+.card {
+  @apply bg-white dark:bg-gray-800 rounded-2xl shadow border border-gray-100 dark:border-gray-700;
+}
+
+/* Input / button helpers (also available in index.css but kept here for components that import globals) */
+.field {
+  @apply input-field;
+}
+
+/* Small visual helpers */
+.kicker {
+  @apply text-xs text-gray-400;
+}
+
+.muted {
+  @apply text-sm text-gray-500 dark:text-gray-400;
+}
+
+/* Accessibility focus */
+:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(37,99,235,0.08);
+}
+
+/* Small responsive container */
+.container-md { max-width: 720px; margin-left: auto; margin-right: auto; padding-left: 1rem; padding-right: 1rem; }
