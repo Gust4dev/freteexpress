@@ -1,4 +1,8 @@
-module.exports = {
+const { defineConfig } = require("tailwindcss");
+const preset = require("tailwindcss/default-preset");
+
+module.exports = defineConfig({
+  presets: [preset],
   content: ["./index.html", "./src/**/*.{ts,tsx,js,jsx}"],
   theme: {
     extend: {
@@ -11,4 +15,4 @@ module.exports = {
     }
   },
   plugins: []
-};
+});
