@@ -5,6 +5,7 @@ import { User } from "../models/user";
 const updateSchema = z.object({
   name: z.string().min(2).optional(),
   phone: z.string().min(8).optional(),
+  role: z.enum(["client", "driver"]).optional(),
 });
 
 export async function getMeuUsuario(req: Request, res: Response) {

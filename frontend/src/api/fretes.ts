@@ -2,28 +2,36 @@ import api from "./apiClient";
 import type { AxiosResponse } from "axios";
 
 export type CreateFreteDTO = {
-  origem: string;
-  destino: string;
-  peso: number | string;
-  descricao?: string;
-  dataColeta?: string;
-  tipo?: string;
+  origin: { address: string; coords?: [number, number] };
+  destination: { address: string; coords?: [number, number] };
+  distanceKm: number;
+  vehicleType: "moto" | "carro" | "caminhao";
+  price: number;
 };
 
-export async function createFrete(payload: CreateFreteDTO): Promise<AxiosResponse> {
-  return api.post("/fretes", payload);
+export async function createFrete(
+  payload: CreateFreteDTO
+): Promise<AxiosResponse> {
+  return api.post("/orders", payload);
 }
 
-export async function listFretes(params?: { page?: number; limit?: number }) {
-  return api.get("/fretes", { params });
+export async function listFretes() {
+  const res = await api.get("/orders");
+  return res.data;
 }
 
 export async function getFrete(id: string) {
-  return api.get(`/fretes/${id}`);
+  const res = await api.get(`/orders/${id}`);
+  return res.data;
 }
 
 export async function updateFrete(id: string, payload: Partial<CreateFreteDTO>) {
-  return api.patch(`/fretes/${id}`, payload);
+  return api.patch(`/orders/${id}`, payload);
 }
 
-export default { createFrete, listFretes, getFrete, updateFrete };
+export async function acceptFrete(id: string) {
+  const res = await api.post(`/orders/${id}/accept`);
+  return res.data;
+}
+
+export default { createFrete, listFretes, getFrete, updateFrete, acceptFrete };
