@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Spinner from "../components/Spinner";
 import { createFrete, CreateFreteDTO } from "../api/fretes";
 import { calculateDistance } from "../api/utils";
+import CityAsyncSelect from "../components/CityAsyncSelect";
 
 function calcPisoMinimo(
   distanceKm: number,
@@ -48,6 +49,12 @@ export default function CriarFretePage() {
     >
   ) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    setRouteCalculated(false);
+    setError(null);
+  }
+
+  function handleAddressChange(name: "origem" | "destino", value: string) {
+    setFormData({ ...formData, [name]: value });
     setRouteCalculated(false);
     setError(null);
   }
@@ -166,13 +173,9 @@ export default function CriarFretePage() {
                 <label className="text-sm text-gray-600 dark:text-gray-300 mb-2 block">
                   Endereço de Origem
                 </label>
-                <input
-                  name="origem"
-                  value={formData.origem}
-                  onChange={handleChange}
-                  className="input-field"
-                  placeholder="Ex: Anápolis, GO"
-                  required
+                <CityAsyncSelect
+                  placeholder="Digite uma cidade..."
+                  onChange={(value) => handleAddressChange("origem", value)}
                 />
               </div>
 
@@ -180,13 +183,9 @@ export default function CriarFretePage() {
                 <label className="text-sm text-gray-600 dark:text-gray-300 mb-2 block">
                   Endereço de Destino
                 </label>
-                <input
-                  name="destino"
-                  value={formData.destino}
-                  onChange={handleChange}
-                  className="input-field"
-                  placeholder="Ex: Goiânia, GO"
-                  required
+                <CityAsyncSelect
+                  placeholder="Digite uma cidade..."
+                  onChange={(value) => handleAddressChange("destino", value)}
                 />
               </div>
             </div>

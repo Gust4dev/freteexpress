@@ -58,7 +58,7 @@ export async function listarPedidos(req: Request, res: Response) {
     const role = req.userRole ?? "client";
 
     if (role === "driver") {
-      const list = await Order.find({ transporterId: null, status: "created" })
+      const list = await Order.find({ status: { $in: ["created", "accepted", "in_route"] } })
         .limit(100)
         .lean();
       return res.json(list);
@@ -110,22 +110,28 @@ export async function atualizarStatusPedido(req: Request, res: Response) {
       transporter && String(transporter._id) === String(order.transporterId);
     const isClientOwner = String(order.clientId) === userId;
 
-    // autorização: somente transportador proprietário pode setar in_route/delivered; cliente pode cancelar
-    if (
-      body.status === "cancelled" &&
-      !isClientOwner &&
-      !(req.userRole === "admin")
-    ) {
-      return res.status(403).json({ error: "forbidden" });
-    }
-    if (
-      (body.status === "in_route" || body.status === "delivered") &&
-      !isTransporterOwner
-    ) {
-      return res.status(403).json({ error: "forbidden" });
+    if (body.status === "cancelled") {
+      if (!isClientOwner && !isTransporterOwner && req.userRole !== "admin") {
+        return res.status(403).json({ error: "forbidden" });
+      }
+      if (isTransporterOwner && order.status === "created") {
+         return res.status(403).json({ error: "forbidden_cannot_cancel_unaccepted" });
+      }
+    } else if (body.status === "in_route" || body.status === "delivered") {
+      if (!isTransporterOwner) {
+        return res.status(403).json({ error: "forbidden" });
+      }
     }
 
     order.status = body.status;
+    
+    if (body.status === "cancelled" && isTransporterOwner) {
+      order.transporterId = null;
+      order.status = "created"; 
+    } else {
+      order.status = body.status;
+    }
+
     await order.save();
     return res.json(order);
   } catch (err: any) {

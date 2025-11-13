@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -10,6 +11,7 @@ import {
 import MiniChart from "../components/ui/MiniChart";
 import SmallStat from "../components/ui/SmallStat";
 import Spinner from "../components/Spinner";
+import CancelOrderModal from "../components/CancelOrderModal";
 
 type Order = {
   _id: string;
@@ -26,6 +28,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [cancelModal, setCancelModal] = useState({ open: false, orderId: "" });
 
   const {
     data: orders,
@@ -49,6 +52,7 @@ export default function Dashboard() {
       updateOrderStatus(id, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
+      setCancelModal({ open: false, orderId: "" });
     },
   });
 
@@ -60,6 +64,11 @@ export default function Dashboard() {
     } else if (status === "in_route") {
       statusMutation.mutate({ id, status: "delivered" });
     }
+  };
+
+  const handleConfirmCancel = (reason: string) => {
+    console.log("Motivo do cancelamento:", reason);
+    statusMutation.mutate({ id: cancelModal.orderId, status: "cancelled" });
   };
 
   const metrics = {
@@ -95,9 +104,12 @@ export default function Dashboard() {
   const renderDriverButton = (order: Order) => {
     const isMutating = acceptMutation.isPending || statusMutation.isPending;
 
-    switch (order.status) {
-      case "created":
-        return (
+    const showCancel =
+      order.status === "accepted" || order.status === "in_route";
+
+    return (
+      <div className="flex gap-2">
+        {order.status === "created" && (
           <button
             onClick={() => handleDriverAction(order._id, "created")}
             disabled={isMutating}
@@ -105,9 +117,8 @@ export default function Dashboard() {
           >
             {isMutating ? <Spinner /> : "Aceitar"}
           </button>
-        );
-      case "accepted":
-        return (
+        )}
+        {order.status === "accepted" && (
           <button
             onClick={() => handleDriverAction(order._id, "accepted")}
             disabled={isMutating}
@@ -116,9 +127,8 @@ export default function Dashboard() {
           >
             {isMutating ? <Spinner /> : "Iniciar Rota"}
           </button>
-        );
-      case "in_route":
-        return (
+        )}
+        {order.status === "in_route" && (
           <button
             onClick={() => handleDriverAction(order._id, "in_route")}
             disabled={isMutating}
@@ -127,14 +137,21 @@ export default function Dashboard() {
           >
             {isMutating ? <Spinner /> : "Finalizar Entrega"}
           </button>
-        );
-      case "delivered":
-        return (
+        )}
+        {order.status === "delivered" && (
           <span className="text-xs font-medium text-green-600">Concluído</span>
-        );
-      default:
-        return null;
-    }
+        )}
+        {showCancel && (
+          <button
+            onClick={() => setCancelModal({ open: true, orderId: order._id })}
+            disabled={isMutating}
+            className="px-3 py-1 text-sm font-medium text-red-600 rounded-lg border border-red-500 hover:bg-red-50 dark:hover:bg-gray-700"
+          >
+            Cancelar
+          </button>
+        )}
+      </div>
+    );
   };
 
   const renderOrderList = () => (
@@ -174,81 +191,96 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-[80vh] p-8">
-      <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-semibold">Seu painel</h2>
-            <div className="text-sm text-gray-500 dark:text-gray-400">
-              Visão geral da sua conta e desempenho
-            </div>
-          </div>
-          <div className="flex gap-3">
-            <button className="px-4 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
-              Compartilhar
-            </button>
-            {user?.role === "client" && (
-              <button
-                onClick={() => navigate("/fazer-frete")}
-                className="btn-primary px-4 py-2"
-              >
-                Novo frete
-              </button>
-            )}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <SmallStat title="Avaliações" value={String(metrics.reviews)} />
-          <SmallStat title="Nota média" value={String(metrics.rating)} />
-          <SmallStat title="Entregas" value={String(metrics.deliveriesDone)} />
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2 p-6 bg-white dark:bg-gray-800 rounded-2xl shadow border border-gray-100 dark:border-gray-700">
-            <div className="flex items-center justify-between mb-4">
-              <div className="text-lg font-semibold">
-                {user?.role === "driver"
-                  ? "Pedidos Disponíveis"
-                  : "Meus Pedidos"}
+    <>
+      <div className="min-h-[80vh] p-8">
+        <div className="max-w-6xl mx-auto space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold">Seu painel</h2>
+              <div className="text-sm text-gray-500 dark:text-gray-400">
+                Visão geral da sua conta e desempenho
               </div>
-              <div className="text-sm text-gray-500">Últimos pedidos</div>
             </div>
-            {renderDashboardContent()}
-          </div>
-
-          <div className="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow border border-gray-100 dark:border-gray-700">
-            <div className="text-lg font-semibold mb-4">
-              Atividade da Semana
+            <div className="flex gap-3">
+              <button className="px-4 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+                Compartilhar
+              </button>
+              {user?.role === "client" && (
+                <button
+                  onClick={() => navigate("/fazer-frete")}
+                  className="btn-primary px-4 py-2"
+                >
+                  Novo frete
+                </button>
+              )}
             </div>
-            <MiniChart />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow border border-gray-100 dark:border-gray-700">
-            <div className="text-lg font-semibold mb-2">Mapa (simulado)</div>
-            <div className="h-36 rounded-lg bg-gray-50 dark:bg-gray-700 shimmer"></div>
           </div>
 
-          <div className="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow border border-gray-100 dark:border-gray-700">
-            <div className="text-lg font-semibold mb-2">Alertas recentes</div>
-            <ul className="space-y-2 text-sm text-gray-500">
-              <li>Entrega atrasada: Pedido #341</li>
-              <li>Usuário solicitou suporte: Ticket #112</li>
-              <li>Novo cadastro de entregador: João</li>
-            </ul>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <SmallStat title="Avaliações" value={String(metrics.reviews)} />
+            <SmallStat title="Nota média" value={String(metrics.rating)} />
+            <SmallStat
+              title="Entregas"
+              value={String(metrics.deliveriesDone)}
+            />
           </div>
 
-          <div className="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow border border-gray-100 dark:border-gray-700">
-            <div className="text-lg font-semibold mb-2">Status do sistema</div>
-            <div className="text-sm text-gray-500">Banco de dados: OK</div>
-            <div className="text-sm text-gray-500">
-              Serviço de mapas: Simulado
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="lg:col-span-2 p-6 bg-white dark:bg-gray-800 rounded-2xl shadow border border-gray-100 dark:border-gray-700">
+              <div className="flex items-center justify-between mb-4">
+                <div className="text-lg font-semibold">
+                  {user?.role === "driver"
+                    ? "Meus Pedidos Ativos"
+                    : "Meus Pedidos"}
+                </div>
+                <div className="text-sm text-gray-500">Últimos pedidos</div>
+              </div>
+              {renderDashboardContent()}
+            </div>
+
+            <div className="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow border border-gray-100 dark:border-gray-700">
+              <div className="text-lg font-semibold mb-4">
+                Atividade da Semana
+              </div>
+              <MiniChart />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow border border-gray-100 dark:border-gray-700">
+              <div className="text-lg font-semibold mb-2">Mapa (simulado)</div>
+              <div className="h-36 rounded-lg bg-gray-50 dark:bg-gray-700 shimmer"></div>
+            </div>
+
+            <div className="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow border border-gray-100 dark:border-gray-700">
+              <div className="text-lg font-semibold mb-2">Alertas recentes</div>
+              <ul className="space-y-2 text-sm text-gray-500">
+                <li>Entrega atrasada: Pedido #341</li>
+                <li>Usuário solicitou suporte: Ticket #112</li>
+                <li>Novo cadastro de entregador: João</li>
+              </ul>
+            </div>
+
+            <div className="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow border border-gray-100 dark:border-gray-700">
+              <div className="text-lg font-semibold mb-2">
+                Status do sistema
+              </div>
+              <div className="text-sm text-gray-500">Banco de dados: OK</div>
+              <div className="text-sm text-gray-500">
+                Serviço de mapas: OSM (Gratuito)
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {cancelModal.open && (
+        <CancelOrderModal
+          onClose={() => setCancelModal({ open: false, orderId: "" })}
+          onSubmit={handleConfirmCancel}
+          loading={statusMutation.isPending}
+        />
+      )}
+    </>
   );
 }

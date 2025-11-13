@@ -32,10 +32,7 @@ export async function getFrete(id: string) {
   return res.data;
 }
 
-export async function updateFrete(
-  id: string,
-  payload: Partial<CreateFreteDTO>
-) {
+export async function updateFrete(id: string, payload: Partial<CreateFreteDTO>) {
   return api.patch(`/orders/${id}`, payload);
 }
 

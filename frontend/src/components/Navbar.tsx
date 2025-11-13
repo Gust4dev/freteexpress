@@ -36,14 +36,14 @@ export default function Navbar({
 
   return (
     <header className="w-full border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-6 py-4 flex items-center justify-between">
-      <div className="flex items-center gap-4">
+      <Link to="/" className="flex items-center gap-4">
         <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center text-white font-bold shadow-sm">
           FX
         </div>
         <h1 className="text-2xl font-semibold text-blue-600 dark:text-blue-300">
           Frete Express
         </h1>
-      </div>
+      </Link>
 
       <div className="flex items-center gap-6">
         <nav className="hidden md:flex gap-4 items-center">
