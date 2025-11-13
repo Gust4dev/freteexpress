@@ -9,6 +9,13 @@ export type CreateFreteDTO = {
   price: number;
 };
 
+export type OrderStatus =
+  | "created"
+  | "accepted"
+  | "in_route"
+  | "delivered"
+  | "cancelled";
+
 export async function createFrete(
   payload: CreateFreteDTO
 ): Promise<AxiosResponse> {
@@ -25,7 +32,10 @@ export async function getFrete(id: string) {
   return res.data;
 }
 
-export async function updateFrete(id: string, payload: Partial<CreateFreteDTO>) {
+export async function updateFrete(
+  id: string,
+  payload: Partial<CreateFreteDTO>
+) {
   return api.patch(`/orders/${id}`, payload);
 }
 
@@ -34,4 +44,16 @@ export async function acceptFrete(id: string) {
   return res.data;
 }
 
-export default { createFrete, listFretes, getFrete, updateFrete, acceptFrete };
+export async function updateOrderStatus(id: string, status: OrderStatus) {
+  const res = await api.patch(`/orders/${id}/status`, { status });
+  return res.data;
+}
+
+export default {
+  createFrete,
+  listFretes,
+  getFrete,
+  updateFrete,
+  acceptFrete,
+  updateOrderStatus,
+};

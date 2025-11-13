@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import Spinner from "../components/Spinner";
 import { createFrete, CreateFreteDTO } from "../api/fretes";
+import { calculateDistance } from "../api/utils";
 
-// Replicando a lógica do backend (antt.ts) para calcular o piso no frontend
 function calcPisoMinimo(
   distanceKm: number,
   vehicleType: "moto" | "carro" | "caminhao"
@@ -65,20 +65,31 @@ export default function CriarFretePage() {
     setLoading(true);
     setError(null);
 
-    // --- SIMULAÇÃO DA API DE MAPAS ---
-    // Aqui (Trabalho Futuro) você chamaria o Mapbox ou Google Maps
-    // para obter a distância real.
-    await new Promise((r) => setTimeout(r, 750));
-    const mockDistance = Math.floor(Math.random() * 200) + 20; // Ex: 120km
-    // --- FIM DA SIMULAÇÃO ---
+    try {
+      const { distanceKm: realDistance } = await calculateDistance(
+        formData.origem,
+        formData.destino
+      );
 
-    const vehicleType = getVehicleType();
-    const piso = calcPisoMinimo(mockDistance, vehicleType);
+      const vehicleType = getVehicleType();
+      const piso = calcPisoMinimo(realDistance, vehicleType);
 
-    setDistanceKm(mockDistance);
-    setPisoMinimo(piso);
-    setRouteCalculated(true);
-    setLoading(false);
+      setDistanceKm(realDistance);
+      setPisoMinimo(piso);
+      setRouteCalculated(true);
+    } catch (err: any) {
+      console.error(err);
+      const errorMsg = err?.response?.data?.error;
+      if (errorMsg === "geocode_failed") {
+        setError(
+          "Não foi possível encontrar os endereços. Tente ser mais específico."
+        );
+      } else {
+        setError("Não foi possível calcular a rota. Verifique os dados.");
+      }
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -160,7 +171,7 @@ export default function CriarFretePage() {
                   value={formData.origem}
                   onChange={handleChange}
                   className="input-field"
-                  placeholder="Ex: São Paulo, SP"
+                  placeholder="Ex: Anápolis, GO"
                   required
                 />
               </div>
@@ -174,7 +185,7 @@ export default function CriarFretePage() {
                   value={formData.destino}
                   onChange={handleChange}
                   className="input-field"
-                  placeholder="Ex: Campinas, SP"
+                  placeholder="Ex: Goiânia, GO"
                   required
                 />
               </div>
@@ -230,7 +241,6 @@ export default function CriarFretePage() {
               />
             </div>
 
-            {/* --- Seção de Cálculo de Rota e Preço --- */}
             <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700 space-y-4">
               <button
                 type="button"
@@ -255,7 +265,7 @@ export default function CriarFretePage() {
                   className="space-y-4"
                 >
                   <div className="text-sm text-gray-700 dark:text-gray-200">
-                    Distância (simulada):{" "}
+                    Distância (linha reta):{" "}
                     <b className="font-semibold">{distanceKm.toFixed(1)} km</b>
                   </div>
                   <div className="text-sm text-gray-700 dark:text-gray-200">

@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { z } from "zod";
 import { User } from "../models/user";
+import { Transporter } from "../models/transporters";
 
 const updateSchema = z.object({
   name: z.string().min(2).optional(),
@@ -29,6 +30,17 @@ export async function atualizarMeuUsuario(req: Request, res: Response) {
     if (!id) return res.status(401).json({ error: "unauthenticated" });
 
     const payload = updateSchema.parse(req.body);
+
+    if (payload.role === "driver") {
+      let transporter = await Transporter.findOne({ userId: id });
+      if (transporter) {
+        transporter.validated = true;
+        await transporter.save();
+      } else {
+        await Transporter.create({ userId: id, validated: true });
+      }
+    }
+
     const user = await User.findByIdAndUpdate(id, payload, { new: true })
       .select("-passwordHash")
       .lean();

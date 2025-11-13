@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../hooks/useAuth";
 import { updateMe } from "../api/auth";
+import { createOrUpdateTransporter } from "../api/transporter";
+import { useMutation } from "@tanstack/react-query";
 import Spinner from "./Spinner";
 
 export default function ProfileDrawer({
@@ -20,6 +22,28 @@ export default function ProfileDrawer({
     email: user?.email || "",
     phone: (user as any)?.phone || "",
     role: user?.role || "driver",
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: updateMe,
+    onSuccess: (updatedUser) => {
+      login(token || "", updatedUser, true);
+      setEditing(false);
+      onClose();
+    },
+    onError: () => {
+      setError("Falha ao salvar. Tente novamente.");
+    },
+  });
+
+  const becomeDriverMutation = useMutation({
+    mutationFn: () => createOrUpdateTransporter({}),
+    onSuccess: () => {
+      saveMutation.mutate({ role: "driver" });
+    },
+    onError: () => {
+      setError("Falha ao criar perfil de entregador.");
+    },
   });
 
   useEffect(() => {
@@ -42,23 +66,20 @@ export default function ProfileDrawer({
   async function handleSave() {
     setLoading(true);
     setError(null);
-    try {
-      const updatedUser = await updateMe({
-        name: profile.name,
-        phone: profile.phone,
-        role: profile.role,
-      });
-
-      login(token || "", updatedUser, true);
-      setEditing(false);
-      onClose();
-    } catch (err) {
-      console.error(err);
-      setError("Falha ao salvar. Tente novamente.");
-    } finally {
-      setLoading(false);
-    }
+    saveMutation.mutate({
+      name: profile.name,
+      phone: profile.phone,
+      role: profile.role,
+    });
+    setLoading(false);
   }
+
+  const handleBecomeDriver = () => {
+    setLoading(true);
+    setError(null);
+    becomeDriverMutation.mutate();
+    setLoading(false);
+  };
 
   const handleCancel = () => {
     setEditing(false);
@@ -72,6 +93,9 @@ export default function ProfileDrawer({
       });
     }
   };
+
+  const isLoading =
+    loading || saveMutation.isPending || becomeDriverMutation.isPending;
 
   return (
     <AnimatePresence>
@@ -157,32 +181,46 @@ export default function ProfileDrawer({
               />
             </div>
 
-            <div className="space-y-2">
-              <label className="text-xs text-gray-500">Função</label>
-              <select
-                name="role"
-                value={profile.role}
-                onChange={handleChange}
-                className={`input-field ${
-                  !editing && "opacity-80 cursor-not-allowed"
-                }`}
-                disabled={!editing}
-              >
-                <option value="client">Cliente</option>
-                <option value="driver">Entregador</option>
-              </select>
-            </div>
+            {user?.role === "driver" && (
+              <div className="space-y-2">
+                <label className="text-xs text-gray-500">Função (Teste)</label>
+                <select
+                  name="role"
+                  value={profile.role}
+                  onChange={handleChange}
+                  className={`input-field ${
+                    !editing && "opacity-80 cursor-not-allowed"
+                  }`}
+                  disabled={!editing}
+                >
+                  <option value="client">Cliente</option>
+                  <option value="driver">Entregador</option>
+                </select>
+              </div>
+            )}
 
             {error && <div className="text-red-500 text-sm pt-2">{error}</div>}
 
-            {editing && (
+            {editing && user?.role === "driver" && (
               <div className="pt-2">
                 <button
                   onClick={handleSave}
                   className="btn-primary w-full"
-                  disabled={loading}
+                  disabled={isLoading}
                 >
-                  {loading ? <Spinner /> : "Salvar"}
+                  {isLoading ? <Spinner /> : "Salvar"}
+                </button>
+              </div>
+            )}
+
+            {user?.role === "client" && (
+              <div className="pt-2">
+                <button
+                  onClick={handleBecomeDriver}
+                  className="btn-primary w-full"
+                  disabled={isLoading}
+                >
+                  {isLoading ? <Spinner /> : "Quero ser um entregador"}
                 </button>
               </div>
             )}

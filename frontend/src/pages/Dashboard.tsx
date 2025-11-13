@@ -1,7 +1,12 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { listFretes, acceptFrete } from "../api/fretes";
+import {
+  listFretes,
+  acceptFrete,
+  updateOrderStatus,
+  OrderStatus,
+} from "../api/fretes";
 import MiniChart from "../components/ui/MiniChart";
 import SmallStat from "../components/ui/SmallStat";
 import Spinner from "../components/Spinner";
@@ -12,7 +17,7 @@ type Order = {
   destination: { address: string };
   distanceKm: number;
   price: number;
-  status: string;
+  status: OrderStatus;
   vehicleType: "moto" | "carro" | "caminhao";
   clientId: string;
 };
@@ -39,8 +44,22 @@ export default function Dashboard() {
     },
   });
 
-  const handleAcceptOrder = (id: string) => {
-    acceptMutation.mutate(id);
+  const statusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: OrderStatus }) =>
+      updateOrderStatus(id, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+    },
+  });
+
+  const handleDriverAction = (id: string, status: OrderStatus) => {
+    if (status === "created") {
+      acceptMutation.mutate(id);
+    } else if (status === "accepted") {
+      statusMutation.mutate({ id, status: "in_route" });
+    } else if (status === "in_route") {
+      statusMutation.mutate({ id, status: "delivered" });
+    }
   };
 
   const metrics = {
@@ -73,6 +92,51 @@ export default function Dashboard() {
     </div>
   );
 
+  const renderDriverButton = (order: Order) => {
+    const isMutating = acceptMutation.isPending || statusMutation.isPending;
+
+    switch (order.status) {
+      case "created":
+        return (
+          <button
+            onClick={() => handleDriverAction(order._id, "created")}
+            disabled={isMutating}
+            className="btn-primary px-3 py-1 text-sm"
+          >
+            {isMutating ? <Spinner /> : "Aceitar"}
+          </button>
+        );
+      case "accepted":
+        return (
+          <button
+            onClick={() => handleDriverAction(order._id, "accepted")}
+            disabled={isMutating}
+            className="btn-primary px-3 py-1 text-sm bg-green-600"
+            style={{ background: "linear-gradient(135deg, #16a34a, #15803d)" }}
+          >
+            {isMutating ? <Spinner /> : "Iniciar Rota"}
+          </button>
+        );
+      case "in_route":
+        return (
+          <button
+            onClick={() => handleDriverAction(order._id, "in_route")}
+            disabled={isMutating}
+            className="btn-primary px-3 py-1 text-sm bg-orange-500"
+            style={{ background: "linear-gradient(135deg, #f97316, #ea580c)" }}
+          >
+            {isMutating ? <Spinner /> : "Finalizar Entrega"}
+          </button>
+        );
+      case "delivered":
+        return (
+          <span className="text-xs font-medium text-green-600">Concluído</span>
+        );
+      default:
+        return null;
+    }
+  };
+
   const renderOrderList = () => (
     <div className="flow-root">
       <ul role="list" className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -90,17 +154,9 @@ export default function Dashboard() {
                 <span className="capitalize">{order.status}</span>
               </p>
             </div>
-            {user?.role === "driver" && (
-              <button
-                onClick={() => handleAcceptOrder(order._id)}
-                disabled={acceptMutation.isPending}
-                className="btn-primary px-3 py-1 text-sm"
-              >
-                {acceptMutation.isPending ? <Spinner /> : "Aceitar"}
-              </button>
-            )}
+            {user?.role === "driver" && <div>{renderDriverButton(order)}</div>}
             {user?.role === "client" && (
-              <span className="text-xs font-medium px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 rounded-full">
+              <span className="text-xs font-medium px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 rounded-full capitalize">
                 {order.status}
               </span>
             )}
