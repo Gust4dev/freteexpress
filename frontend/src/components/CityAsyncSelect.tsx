@@ -1,9 +1,8 @@
-import React from "react";
 import AsyncSelect from "react-select/async";
 import { useAuth } from "../hooks/useAuth";
 import { searchCities, CityOption } from "../api/utils";
 
-let debounceTimer: ReturnType<typeof setTimeout>;
+let debounceTimer: number;
 
 const loadOptions = (
   inputValue: string,
@@ -19,10 +18,12 @@ const loadOptions = (
 
 export default function CityAsyncSelect({
   placeholder,
+  value,
   onChange,
 }: {
   placeholder: string;
-  onChange: (value: string) => void;
+  value: CityOption | null;
+  onChange: (option: CityOption | null) => void;
 }) {
   const { darkMode } = useAuth();
 
@@ -32,7 +33,8 @@ export default function CityAsyncSelect({
       defaultOptions
       loadOptions={loadOptions}
       placeholder={placeholder}
-      onChange={(option) => onChange(option?.value || "")}
+      value={value}
+      onChange={(option) => onChange(option as CityOption | null)}
       isClearable
       styles={{
         control: (base, state) => ({

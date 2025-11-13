@@ -8,21 +8,26 @@ const distanceSchema = z.object({
   destination: z.string().min(3, "Destino é obrigatório"),
 });
 
-type NominatimResponse = {
+type NominatimResult = {
+  display_name: string;
   lat: string;
   lon: string;
-  display_name: string;
-}[];
+  address: {
+    city?: string;
+    town?: string;
+    village?: string;
+    state?: string;
+    country?: string;
+  };
+};
 
-async function geocodeAddress(
-  address: string
-): Promise<[number, number] | null> {
+async function geocodeAddress(address: string): Promise<[number, number] | null> {
   try {
     const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
       address
-    )}&format=json&limit=1`;
+    )}&format=json&limit=1&countrycodes=br&addressdetails=1`;
 
-    const response = await axios.get<NominatimResponse>(url, {
+    const response = await axios.get<NominatimResult[]>(url, {
       headers: { "User-Agent": "FreteExpressApp/0.1" },
     });
 
@@ -60,6 +65,48 @@ export async function calculateDistance(req: Request, res: Response) {
   } catch (err: any) {
     if (err?.issues) return res.status(400).json({ validation: err.issues });
     console.error("calculateDistance error", err);
+    return res.status(500).json({ error: "internal" });
+  }
+}
+
+export async function searchCities(req: Request, res: Response) {
+  try {
+    const query = z.string().min(3).parse(req.query.q);
+
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
+      query
+    )}&format=json&limit=5&countrycodes=br&addressdetails=1`;
+
+    const response = await axios.get<NominatimResult[]>(url, {
+      headers: { "User-Agent": "FreteExpressApp/0.1" },
+    });
+
+    if (!response.data) return res.json([]);
+
+    const options = response.data
+      .map((item) => {
+        const city =
+          item.address.city || item.address.town || item.address.village;
+        const state = item.address.state;
+        
+        const label = item.display_name;
+        const value = label;
+
+        if (city && state) {
+          return { value: `${city}, ${state}`, label: `${city}, ${state}` };
+        }
+        
+        return { value: label, label: label };
+      })
+      .filter((item): item is { value: string, label: string } => item !== null);
+    
+    const uniqueOptions = Array.from(new Map(options.map(item => [item.label, item])).values());
+    
+    return res.json(uniqueOptions);
+
+  } catch (err: any) {
+    if (err?.issues) return res.status(400).json({ validation: err.issues });
+    console.error("searchCities error", err);
     return res.status(500).json({ error: "internal" });
   }
 }

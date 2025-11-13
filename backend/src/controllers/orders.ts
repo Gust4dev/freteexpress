@@ -58,9 +58,16 @@ export async function listarPedidos(req: Request, res: Response) {
     const role = req.userRole ?? "client";
 
     if (role === "driver") {
-      const list = await Order.find({ status: { $in: ["created", "accepted", "in_route"] } })
-        .limit(100)
-        .lean();
+      const transporter = await Transporter.findOne({ userId }).lean();
+      
+      const query = {
+        $or: [
+          { status: "created", transporterId: null },
+          { transporterId: transporter?._id, status: { $in: ["accepted", "in_route"] } }
+        ]
+      };
+
+      const list = await Order.find(query).limit(100).lean();
       return res.json(list);
     } else {
       const list = await Order.find({ clientId: userId }).limit(100).lean();
@@ -123,8 +130,6 @@ export async function atualizarStatusPedido(req: Request, res: Response) {
       }
     }
 
-    order.status = body.status;
-    
     if (body.status === "cancelled" && isTransporterOwner) {
       order.transporterId = null;
       order.status = "created"; 

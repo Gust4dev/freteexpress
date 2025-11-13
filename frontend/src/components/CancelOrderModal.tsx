@@ -20,9 +20,12 @@ export default function CancelOrderModal({
   loading: boolean;
 }) {
   const [reason, setReason] = useState(cancelReasons[0].id);
+  const [otherReasonText, setOtherReasonText] = useState("");
 
   const handleSubmit = () => {
-    onSubmit(reason);
+    const finalReason = reason === "outro" ? otherReasonText : reason;
+    if (reason === "outro" && !finalReason) return;
+    onSubmit(finalReason);
   };
 
   return (
@@ -46,31 +49,51 @@ export default function CancelOrderModal({
             Cancelar Pedido
           </h3>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-            Por favor, selecione o motivo do cancelamento. Esta ação não pode ser
-            desfeita.
+            Por favor, selecione o motivo do cancelamento. Esta ação reabrirá o
+            pedido para outros entregadores.
           </p>
 
           <fieldset className="mt-4 space-y-3">
             <legend className="sr-only">Motivos de cancelamento</legend>
             {cancelReasons.map((item) => (
-              <div key={item.id} className="flex items-center">
-                <input
-                  id={item.id}
-                  name="cancel-reason"
-                  type="radio"
-                  checked={reason === item.id}
-                  onChange={() => setReason(item.id)}
-                  className="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500"
-                />
-                <label
-                  htmlFor={item.id}
-                  className="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >
-                  {item.label}
-                </label>
+              <div key={item.id}>
+                <div className="flex items-center">
+                  <input
+                    id={item.id}
+                    name="cancel-reason"
+                    type="radio"
+                    checked={reason === item.id}
+                    onChange={() => setReason(item.id)}
+                    className="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <label
+                    htmlFor={item.id}
+                    className="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    {item.label}
+                  </label>
+                </div>
               </div>
             ))}
           </fieldset>
+
+          <AnimatePresence>
+            {reason === "outro" && (
+              <motion.div
+                initial={{ height: 0, opacity: 0, marginTop: 0 }}
+                animate={{ height: "auto", opacity: 1, marginTop: "12px" }}
+                exit={{ height: 0, opacity: 0, marginTop: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <textarea
+                  value={otherReasonText}
+                  onChange={(e) => setOtherReasonText(e.target.value)}
+                  className="input-field min-h-[60px] resize-none w-full"
+                  placeholder="Por favor, especifique o motivo..."
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <div className="flex gap-4 pt-6 mt-4 border-t border-gray-200 dark:border-gray-700">
             <button
@@ -86,7 +109,7 @@ export default function CancelOrderModal({
               onClick={handleSubmit}
               className="btn-primary flex-1 bg-red-600"
               style={{ background: "linear-gradient(135deg, #e11d48, #dc2626)" }}
-              disabled={loading}
+              disabled={loading || (reason === "outro" && !otherReasonText)}
             >
               {loading ? <Spinner /> : "Confirmar Cancelamento"}
             </button>

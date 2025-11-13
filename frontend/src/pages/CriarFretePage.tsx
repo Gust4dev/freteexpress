@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import Spinner from "../components/Spinner";
 import { createFrete, CreateFreteDTO } from "../api/fretes";
-import { calculateDistance } from "../api/utils";
+import { calculateDistance, CityOption } from "../api/utils";
 import CityAsyncSelect from "../components/CityAsyncSelect";
 
 function calcPisoMinimo(
@@ -24,13 +24,14 @@ export default function CriarFretePage() {
   const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
-    origem: "",
-    destino: "",
     peso: "",
     descricao: "",
     dataColeta: "",
     tipo: "pacote",
   });
+  
+  const [originOption, setOriginOption] = useState<CityOption | null>(null);
+  const [destOption, setDestOption] = useState<CityOption | null>(null);
 
   const [routeCalculated, setRouteCalculated] = useState(false);
   const [distanceKm, setDistanceKm] = useState(0);
@@ -53,8 +54,9 @@ export default function CriarFretePage() {
     setError(null);
   }
 
-  function handleAddressChange(name: "origem" | "destino", value: string) {
-    setFormData({ ...formData, [name]: value });
+  function handleAddressChange(name: "origem" | "destino", option: CityOption | null) {
+    if (name === 'origem') setOriginOption(option);
+    if (name === 'destino') setDestOption(option);
     setRouteCalculated(false);
     setError(null);
   }
@@ -65,7 +67,7 @@ export default function CriarFretePage() {
   }
 
   async function handleCalculateRoute() {
-    if (!formData.origem || !formData.destino) {
+    if (!originOption || !destOption) {
       setError("Preencha origem e destino para calcular a rota.");
       return;
     }
@@ -74,8 +76,8 @@ export default function CriarFretePage() {
 
     try {
       const { distanceKm: realDistance } = await calculateDistance(
-        formData.origem,
-        formData.destino
+        originOption.value,
+        destOption.value
       );
 
       const vehicleType = getVehicleType();
@@ -101,6 +103,11 @@ export default function CriarFretePage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    
+    if (!originOption || !destOption) {
+       setError("Origem e destino são obrigatórios.");
+       return;
+    }
 
     if (!routeCalculated) {
       setError("Por favor, calcule a rota antes de publicar.");
@@ -127,8 +134,8 @@ export default function CriarFretePage() {
 
     try {
       const payload: CreateFreteDTO = {
-        origin: { address: formData.origem },
-        destination: { address: formData.destino },
+        origin: { address: originOption.value },
+        destination: { address: destOption.value },
         distanceKm: distanceKm,
         price: offeredPrice,
         vehicleType: getVehicleType(),
@@ -175,7 +182,8 @@ export default function CriarFretePage() {
                 </label>
                 <CityAsyncSelect
                   placeholder="Digite uma cidade..."
-                  onChange={(value) => handleAddressChange("origem", value)}
+                  value={originOption}
+                  onChange={(option) => handleAddressChange("origem", option)}
                 />
               </div>
 
@@ -185,7 +193,8 @@ export default function CriarFretePage() {
                 </label>
                 <CityAsyncSelect
                   placeholder="Digite uma cidade..."
-                  onChange={(value) => handleAddressChange("destino", value)}
+                  value={destOption}
+                  onChange={(option) => handleAddressChange("destino", option)}
                 />
               </div>
             </div>
@@ -269,7 +278,9 @@ export default function CriarFretePage() {
                   </div>
                   <div className="text-sm text-gray-700 dark:text-gray-200">
                     Piso Mínimo ANTT:{" "}
-                    <b className="font-semibold">R$ {pisoMinimo.toFixed(2)}</b>
+                    <b className="font-semibold">
+                      R$ {pisoMinimo.toFixed(2)}
+                    </b>
                   </div>
                   <div>
                     <label className="text-sm text-gray-600 dark:text-gray-300 mb-2 block">

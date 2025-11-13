@@ -22,6 +22,7 @@ type Order = {
   status: OrderStatus;
   vehicleType: "moto" | "carro" | "caminhao";
   clientId: string;
+  transporterId?: string | null;
 };
 
 export default function Dashboard() {
@@ -96,7 +97,7 @@ export default function Dashboard() {
       <p className="text-sm text-gray-500 mt-1">
         {user?.role === "client"
           ? "Você ainda não criou nenhum pedido."
-          : "Não há pedidos disponíveis no momento."}
+          : "Não há pedidos disponíveis ou aceitos no momento."}
       </p>
     </div>
   );
@@ -104,8 +105,7 @@ export default function Dashboard() {
   const renderDriverButton = (order: Order) => {
     const isMutating = acceptMutation.isPending || statusMutation.isPending;
 
-    const showCancel =
-      order.status === "accepted" || order.status === "in_route";
+    const showCancel = order.status === "accepted" || order.status === "in_route";
 
     return (
       <div className="flex gap-2">
@@ -115,7 +115,7 @@ export default function Dashboard() {
             disabled={isMutating}
             className="btn-primary px-3 py-1 text-sm"
           >
-            {isMutating ? <Spinner /> : "Aceitar"}
+            {acceptMutation.isPending ? <Spinner /> : "Aceitar"}
           </button>
         )}
         {order.status === "accepted" && (
@@ -125,7 +125,7 @@ export default function Dashboard() {
             className="btn-primary px-3 py-1 text-sm bg-green-600"
             style={{ background: "linear-gradient(135deg, #16a34a, #15803d)" }}
           >
-            {isMutating ? <Spinner /> : "Iniciar Rota"}
+            {statusMutation.isPending ? <Spinner /> : "Iniciar Rota"}
           </button>
         )}
         {order.status === "in_route" && (
@@ -135,58 +135,68 @@ export default function Dashboard() {
             className="btn-primary px-3 py-1 text-sm bg-orange-500"
             style={{ background: "linear-gradient(135deg, #f97316, #ea580c)" }}
           >
-            {isMutating ? <Spinner /> : "Finalizar Entrega"}
+            {statusMutation.isPending ? <Spinner /> : "Finalizar Entrega"}
           </button>
         )}
         {order.status === "delivered" && (
           <span className="text-xs font-medium text-green-600">Concluído</span>
         )}
         {showCancel && (
-          <button
-            onClick={() => setCancelModal({ open: true, orderId: order._id })}
-            disabled={isMutating}
-            className="px-3 py-1 text-sm font-medium text-red-600 rounded-lg border border-red-500 hover:bg-red-50 dark:hover:bg-gray-700"
-          >
-            Cancelar
-          </button>
+           <button
+             onClick={() => setCancelModal({ open: true, orderId: order._id })}
+             disabled={isMutating}
+             className="px-3 py-1 text-sm font-medium text-red-600 rounded-lg border border-red-500 hover:bg-red-50 dark:hover:bg-gray-700"
+           >
+             Cancelar
+           </button>
         )}
       </div>
     );
   };
 
-  const renderOrderList = () => (
-    <div className="flow-root">
-      <ul role="list" className="divide-y divide-gray-200 dark:divide-gray-700">
-        {orders?.map((order) => (
-          <li
-            key={order._id}
-            className="py-4 px-2 flex items-center justify-between space-x-4"
-          >
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                {order.origin.address} → {order.destination.address}
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                {order.distanceKm.toFixed(1)} km · R$ {order.price.toFixed(2)} ·{" "}
-                <span className="capitalize">{order.status}</span>
-              </p>
-            </div>
-            {user?.role === "driver" && <div>{renderDriverButton(order)}</div>}
-            {user?.role === "client" && (
-              <span className="text-xs font-medium px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 rounded-full capitalize">
-                {order.status}
-              </span>
-            )}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
+  const renderOrderList = () => {
+    let filteredOrders = orders;
+    if (user?.role === 'driver') {
+       filteredOrders = orders?.filter(o => o.status !== 'delivered' && o.status !== 'cancelled');
+    }
+    
+    if (!filteredOrders || filteredOrders.length === 0) return renderEmptyState();
+
+    return (
+      <div className="flow-root">
+        <ul role="list" className="divide-y divide-gray-200 dark:divide-gray-700">
+          {filteredOrders.map((order) => (
+            <li
+              key={order._id}
+              className="py-4 px-2 flex items-center justify-between space-x-4"
+            >
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                  {order.origin.address} → {order.destination.address}
+                </p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                  {order.distanceKm.toFixed(1)} km · R$ {order.price.toFixed(2)} ·{" "}
+                  <span className="capitalize">{order.status}</span>
+                </p>
+              </div>
+              {user?.role === "driver" && (
+                <div>{renderDriverButton(order)}</div>
+              )}
+              {user?.role === "client" && (
+                <span className="text-xs font-medium px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 rounded-full capitalize">
+                  {order.status}
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  };
 
   const renderDashboardContent = () => {
     if (isLoading) return renderLoading();
     if (error) return renderError();
-    if (!orders || orders.length === 0) return renderEmptyState();
     return renderOrderList();
   };
 
@@ -219,10 +229,7 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <SmallStat title="Avaliações" value={String(metrics.reviews)} />
             <SmallStat title="Nota média" value={String(metrics.rating)} />
-            <SmallStat
-              title="Entregas"
-              value={String(metrics.deliveriesDone)}
-            />
+            <SmallStat title="Entregas" value={String(metrics.deliveriesDone)} />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -262,9 +269,7 @@ export default function Dashboard() {
             </div>
 
             <div className="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow border border-gray-100 dark:border-gray-700">
-              <div className="text-lg font-semibold mb-2">
-                Status do sistema
-              </div>
+              <div className="text-lg font-semibold mb-2">Status do sistema</div>
               <div className="text-sm text-gray-500">Banco de dados: OK</div>
               <div className="text-sm text-gray-500">
                 Serviço de mapas: OSM (Gratuito)
