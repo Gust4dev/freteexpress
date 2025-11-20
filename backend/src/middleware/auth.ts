@@ -46,17 +46,12 @@ export default function authMiddleware(allowedRoles?: Role | Role[]) {
 
       req.userId = String(sub);
 
-      // prioridade: role presente no token
-      if (payload?.role) {
-        req.userRole = payload.role as Role;
-      } else {
-        // fallback: buscar no banco
-        try {
-          const user = await User.findById(req.userId).select('role').lean();
-          if (user && (user as any).role) req.userRole = (user as any).role as Role;
-        } catch (err) {
-          console.warn('auth middleware: failed to load user role', err);
-        }
+      // Sempre buscar no banco para garantir role atualizada (ignora role do token que pode estar stale)
+      try {
+        const user = await User.findById(req.userId).select('role').lean();
+        if (user && (user as any).role) req.userRole = (user as any).role as Role;
+      } catch (err) {
+        console.warn('auth middleware: failed to load user role', err);
       }
 
       // se não há role exigida, apenas autenticamos

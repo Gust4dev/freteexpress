@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ThemeSwitch from "./ThemeSwitch";
+import { useAuth } from "../hooks/useAuth";
 
 export default function ConfigMenu({
   darkMode,
@@ -11,6 +12,7 @@ export default function ConfigMenu({
   toggleTheme: () => void;
   onOpenProfile: () => void;
 }) {
+  const { logout } = useAuth();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
 
@@ -51,6 +53,14 @@ export default function ConfigMenu({
               </li>
               <li>
                 <button className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">Ajuda</button>
+              </li>
+              <li>
+                <button 
+                  onClick={() => { setOpen(false); logout(); }} 
+                  className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                >
+                  Sair
+                </button>
               </li>
               <li className="flex items-center justify-between px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-b-lg">
                 <span>Modo Escuro</span>

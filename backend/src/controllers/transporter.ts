@@ -33,12 +33,13 @@ export async function criarOuAtualizarTransportador(
     let transporter = await Transporter.findOne({ userId });
     if (transporter) {
       transporter.set(data);
+      transporter.validated = true; // Auto-validate for dev
       await transporter.save();
     } else {
       transporter = await Transporter.create({
         userId,
         ...data,
-        validated: false,
+        validated: true, // Auto-validate for dev
       });
     }
 

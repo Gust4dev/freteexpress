@@ -2,17 +2,20 @@ import { Router } from "express";
 import {
   getMeuUsuario,
   atualizarMeuUsuario,
+  uploadAvatar,
   listarUsuarios,
   getUsuarioPorId,
   deletarUsuario,
 } from "../controllers/users";
 import authMiddleware from "../middleware/auth";
+import { uploadConfig } from "../config/upload";
 
 const router = Router();
 
 // usuário autenticado
 router.get("/me", authMiddleware(), getMeuUsuario);
 router.patch("/me", authMiddleware(), atualizarMeuUsuario);
+router.post("/avatar", authMiddleware(), uploadConfig.single("avatar"), uploadAvatar);
 
 // rotas administrativas / listagem
 router.get("/", authMiddleware(["admin"]), listarUsuarios);

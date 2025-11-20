@@ -4,6 +4,8 @@ import mongoose from "mongoose";
 import helmet from "helmet";
 import cors from "cors";
 import morgan from "morgan";
+import path from "path";
+import multer from "multer";
 
 // routes
 import authRoutes from "./routes/auth";
@@ -19,10 +21,13 @@ dotenv.config();
 const app = express();
 
 // security & parsing
-app.use(helmet());
+app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
+
+// Serve static files
+app.use("/uploads", express.static(path.resolve(__dirname, "..", "uploads")));
 
 // routes
 app.use("/health", healthRoutes);
@@ -42,6 +47,11 @@ app.use(
     _next: express.NextFunction
   ) => {
     console.error("Unhandled error:", err);
+
+    if (err instanceof multer.MulterError) {
+      return res.status(400).json({ error: err.code, message: err.message });
+    }
+
     const status = err?.statusCode ?? 500;
     const message = err?.message ?? "internal_server_error";
     res.status(status).json({ error: message });

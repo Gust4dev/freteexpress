@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Polyline } from 'react-leaflet';
 import { LatLng, LeafletMouseEvent } from 'leaflet';
 import { motion, AnimatePresence } from 'framer-motion';
-import { reverseGeocode } from '../api/utils';
+import { reverseGeocode, fetchRoutePath } from '../api/utils';
 
 // --- Hook Isolation Pattern ---
 type MapEventsHandlerProps = {
@@ -21,15 +21,18 @@ function MapEventsHandler({ onMapClick }: MapEventsHandlerProps) {
 // --- Main Component Props ---
 type MapPickerProps = {
   initialPosition?: [number, number];
+  originCoords?: [number, number];
+  destCoords?: [number, number];
   onLocationSelect: (coords: [number, number], address: string) => void;
   className?: string;
 };
 
-export function MapPicker({ initialPosition, onLocationSelect, className = "" }: MapPickerProps) {
+export function MapPicker({ initialPosition, originCoords, destCoords, onLocationSelect, className = "" }: MapPickerProps) {
   const [position, setPosition] = useState<LatLng | null>(
     initialPosition ? new LatLng(initialPosition[0], initialPosition[1]) : null
   );
   const [isGeocoding, setIsGeocoding] = useState(false);
+  const [routePath, setRoutePath] = useState<LatLng[]>([]);
   
   const markerRef = useRef(null);
 
@@ -38,6 +41,25 @@ export function MapPicker({ initialPosition, onLocationSelect, className = "" }:
       setPosition(new LatLng(initialPosition[0], initialPosition[1]));
     } 
   }, [initialPosition]);
+
+  useEffect(() => {
+    if (originCoords && destCoords) {
+      fetchRoutePath(originCoords, destCoords)
+        .then((data) => {
+          if (data.geometry && data.geometry.coordinates) {
+            // OSRM returns [lon, lat], Leaflet needs [lat, lon]
+            const positions = data.geometry.coordinates.map((c: number[]) => new LatLng(c[1], c[0]));
+            setRoutePath(positions);
+          }
+        })
+        .catch((err) => {
+          console.error("Route fetch error", err);
+          setRoutePath([]);
+        });
+    } else {
+      setRoutePath([]);
+    }
+  }, [originCoords, destCoords]);
 
   const handleInteraction = async (latlng: LatLng) => {
     setIsGeocoding(true);
@@ -94,6 +116,10 @@ export function MapPicker({ initialPosition, onLocationSelect, className = "" }:
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         
+        {routePath.length > 0 && (
+          <Polyline positions={routePath} color="blue" weight={5} opacity={0.7} />
+        )}
+
         {position && (
           <Marker
             draggable={true}

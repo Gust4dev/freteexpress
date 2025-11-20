@@ -35,3 +35,14 @@ export async function reverseGeocode(
   });
   return res.data;
 }
+
+export async function fetchRoutePath(
+  originCoords: Coords,
+  destCoords: Coords
+): Promise<any> {
+  const res = await api.post("/utils/route", {
+    originCoords,
+    destCoords,
+  });
+  return res.data;
+}

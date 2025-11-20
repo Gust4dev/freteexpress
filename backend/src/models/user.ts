@@ -5,6 +5,7 @@ export interface IUser extends Document {
   email: string;
   passwordHash: string;
   phone?: string;
+  avatarUrl?: string;
   role: "client" | "driver";
   createdAt?: Date;
   updatedAt?: Date;
@@ -28,6 +29,7 @@ const UserSchema = new Schema<IUser>(
       enum: ["client", "driver"],
       default: "client",
     },
+    avatarUrl: { type: String, required: false },
   },
   { timestamps: true }
 );

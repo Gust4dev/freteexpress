@@ -154,6 +154,8 @@ export default function CriarFretePage() {
       <div className="absolute inset-0 z-0">
         <MapPicker
           initialPosition={currentMapPosition}
+          originCoords={origin?.coords}
+          destCoords={destination?.coords}
           onLocationSelect={handleLocationSelect}
           className="h-full w-full rounded-none border-none"
         />

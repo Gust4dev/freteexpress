@@ -4,10 +4,37 @@ import { User } from "../models/user";
 import { Transporter } from "../models/transporters";
 
 const updateSchema = z.object({
-  name: z.string().min(2).optional(),
-  phone: z.string().min(8).optional(),
+  name: z.string().min(2).optional().or(z.literal("")),
+  phone: z.string().min(8).optional().or(z.literal("")),
   role: z.enum(["client", "driver"]).optional(),
+  avatarUrl: z.string().optional(),
 });
+
+export async function uploadAvatar(req: Request, res: Response) {
+  try {
+    const id = req.userId;
+    if (!id) return res.status(401).json({ error: "unauthenticated" });
+
+    if (!req.file) {
+      return res.status(400).json({ error: "no_file_uploaded" });
+    }
+
+    // Construct URL (assuming local storage)
+    // In production, this would be an S3 URL or similar
+    const avatarUrl = `${process.env.API_URL || "http://localhost:3000"}/uploads/${req.file.filename}`;
+
+    const user = await User.findByIdAndUpdate(
+      id,
+      { avatarUrl },
+      { new: true }
+    ).select("-passwordHash").lean();
+
+    return res.json(user);
+  } catch (err) {
+    console.error("uploadAvatar error", err);
+    return res.status(500).json({ error: "internal" });
+  }
+}
 
 export async function getMeuUsuario(req: Request, res: Response) {
   try {

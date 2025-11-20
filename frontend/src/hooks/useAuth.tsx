@@ -1,7 +1,14 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import api from "../api/apiClient";
 
-type User = { id?: string; name?: string; email?: string; role?: string };
+type User = { 
+  id?: string; 
+  name?: string; 
+  email?: string; 
+  role?: string; 
+  phone?: string; 
+  avatarUrl?: string; 
+};
 
 type AuthContextValue = {
   user: User | null;
@@ -59,6 +66,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
   function logout() {
+    // Call backend to log out (optional, but good practice)
+    api.post("/auth/logout").catch(() => {});
+    
     setToken(null);
     setUser(null);
     try {

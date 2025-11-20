@@ -80,3 +80,9 @@ export async function loginUsuario(req: Request, res: Response) {
     return res.status(500).json({ error: "internal" });
   }
 }
+
+export async function logoutUsuario(req: Request, res: Response) {
+  // Stateless JWT: Client just discards token. 
+  // Optional: Add token to blacklist in Redis/DB if needed in future.
+  return res.json({ ok: true });
+}

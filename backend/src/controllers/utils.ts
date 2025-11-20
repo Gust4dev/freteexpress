@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { z } from "zod";
+import axios from "axios";
 import { getHaversineDistance } from "../libs/geolocation";
 import { getAddressFromCoords } from "../services/nominatimClient";
 
@@ -11,6 +12,11 @@ const distanceSchema = z.object({
 const reverseGeocodeSchema = z.object({
   lat: z.string(),
   lon: z.string(),
+});
+
+const routeSchema = z.object({
+  originCoords: z.array(z.number()).length(2),
+  destCoords: z.array(z.number()).length(2),
 });
 
 export async function calculateDistance(req: Request, res: Response) {
@@ -63,5 +69,35 @@ export async function reverseGeocode(req: Request, res: Response) {
     if (err?.issues) return res.status(400).json({ validation: err.issues });
     console.error("reverseGeocode error", err);
     return res.status(500).json({ error: err.message || "internal" });
+  }
+}
+
+export async function getRoute(req: Request, res: Response) {
+  try {
+    const { originCoords, destCoords } = routeSchema.parse(req.body);
+
+    // OSRM expects lon,lat
+    const originStr = `${originCoords[1]},${originCoords[0]}`;
+    const destStr = `${destCoords[1]},${destCoords[0]}`;
+
+    const url = `http://router.project-osrm.org/route/v1/driving/${originStr};${destStr}?overview=full&geometries=geojson`;
+
+    const response = await axios.get(url);
+
+    if (response.data.code !== "Ok") {
+      throw new Error("OSRM API Error");
+    }
+
+    const route = response.data.routes[0];
+
+    return res.json({
+      geometry: route.geometry,
+      distance: route.distance,
+      duration: route.duration,
+    });
+  } catch (err: any) {
+    if (err?.issues) return res.status(400).json({ validation: err.issues });
+    console.error("getRoute error", err);
+    return res.status(500).json({ error: "Failed to fetch route" });
   }
 }
