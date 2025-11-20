@@ -4,6 +4,7 @@ import { useQueryClient, useMutation } from "@tanstack/react-query";
 import ConfigMenu from "./ConfigMenu";
 import { useAuth } from "../hooks/useAuth";
 import { updateMe } from "../api/auth";
+import logo from "../assets/logo.png";
 
 export default function Navbar({
   darkMode,
@@ -37,9 +38,7 @@ export default function Navbar({
   return (
     <header className="w-full border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-6 py-4 flex items-center justify-between">
       <Link to="/" className="flex items-center gap-4">
-        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center text-white font-bold shadow-sm">
-          FX
-        </div>
+        <img src={logo} alt="Frete Express" className="w-10 h-10 rounded-lg object-cover shadow-sm" />
         <h1 className="text-2xl font-semibold text-blue-600 dark:text-blue-300">
           Frete Express
         </h1>

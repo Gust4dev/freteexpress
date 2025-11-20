@@ -1,10 +1,10 @@
 import { Router } from "express";
-import { calculateDistance, searchCities } from "../controllers/utils";
+import { calculateDistance, reverseGeocode } from "../controllers/utils";
 import authMiddleware from "../middleware/auth";
 
 const router = Router();
 
-router.post("/calculate-distance", authMiddleware(), calculateDistance);
-router.get("/search-cities", authMiddleware(), searchCities);
+router.post("/calculate-distance", calculateDistance);
+router.get("/reverse-geocode", reverseGeocode);
 
 export default router;

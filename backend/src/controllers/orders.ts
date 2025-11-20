@@ -67,10 +67,10 @@ export async function listarPedidos(req: Request, res: Response) {
         ]
       };
 
-      const list = await Order.find(query).limit(100).lean();
+      const list = await Order.find(query).sort({ createdAt: -1 }).limit(100).lean();
       return res.json(list);
     } else {
-      const list = await Order.find({ clientId: userId }).limit(100).lean();
+      const list = await Order.find({ clientId: userId }).sort({ createdAt: -1 }).limit(100).lean();
       return res.json(list);
     }
   } catch (err) {
