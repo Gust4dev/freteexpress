@@ -36,7 +36,7 @@ export default function authMiddleware(allowedRoles?: Role | Role[]) {
 
       let payload: any;
       try {
-        payload = jwt.verify(token, secret as unknown as jwt.Secret);
+        payload = jwt.verify(token, secret as string);
       } catch (err) {
         return res.status(401).json({ error: 'invalid_token' });
       }

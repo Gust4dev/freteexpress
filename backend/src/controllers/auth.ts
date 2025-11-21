@@ -61,9 +61,9 @@ export async function loginUsuario(req: Request, res: Response) {
     if (!secret) return res.status(500).json({ error: "jwt_secret_not_set" });
 
     const payload = { sub: user._id.toString(), role: user.role };
-    const token = jwt.sign(payload, secret as unknown as jwt.Secret, {
+    const token = jwt.sign(payload, secret as string, {
       expiresIn: process.env.JWT_EXPIRES_IN ?? "1h",
-    });
+    } as any);
 
     return res.json({
       token,

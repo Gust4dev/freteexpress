@@ -14,6 +14,8 @@ const WalletPage = lazy(() => import("./pages/WalletPage"));
 const HistoryPage = lazy(() => import("./pages/HistoryPage"));
 const FindFreightsPage = lazy(() => import("./pages/FindFreightsPage"));
 const TrackingPage = lazy(() => import("./pages/TrackingPage"));
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const RegisterPage = lazy(() => import("./pages/RegisterPage"));
 
 export default function App() {
   const [authOpen, setAuthOpen] = useState<null | "login" | "register">(null);
@@ -28,6 +30,8 @@ export default function App() {
         <Suspense fallback={<GlobalLoader />}>
           <Routes>
             <Route path="/" element={<><Home openAuth={() => setAuthOpen("login")} /></>} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
             <Route path="/work" element={<WorkPage />} />
             <Route path="/fazer-frete" element={<CriarFretePage />} />
             <Route path="/app" element={<Dashboard />} />
