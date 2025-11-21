@@ -46,7 +46,7 @@ export default function AuthCard({
         login(token, user, true);
       }
       onClose();
-      navigate("/app");
+      navigate("/");
     } catch (err: any) {
       console.error(err);
       const errorMsg = err?.response?.data?.error || "Ocorreu um erro";
