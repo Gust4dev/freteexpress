@@ -159,7 +159,12 @@ export async function atualizarStatusPedido(req: Request, res: Response) {
 export async function getPedidoPorId(req: Request, res: Response) {
   try {
     const id = req.params.id;
-    const order = await Order.findById(id).lean();
+    const order = await Order.findById(id)
+      .populate({
+        path: "transporterId",
+        populate: { path: "userId", select: "name phone avatarUrl" },
+      })
+      .lean();
     if (!order) return res.status(404).json({ error: "not_found" });
     return res.json(order);
   } catch (err) {

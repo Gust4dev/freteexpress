@@ -7,6 +7,7 @@ export interface IUser extends Document {
   phone?: string;
   avatarUrl?: string;
   role: "client" | "driver";
+  balance: number;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -30,6 +31,7 @@ const UserSchema = new Schema<IUser>(
       default: "client",
     },
     avatarUrl: { type: String, required: false },
+    balance: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

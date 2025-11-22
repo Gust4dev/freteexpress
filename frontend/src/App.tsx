@@ -36,6 +36,8 @@ export default function App() {
             <Route path="/app" element={<Dashboard />} />
             <Route path="/buscar-fretes" element={<FindFreightsPage />} />
             <Route path="/rastreio" element={<TrackingPage />} />
+            <Route path="/app/tracking/:id" element={<TrackingPage />} />
+            <Route path="/rastreio/:id" element={<TrackingPage />} />
             <Route path="/carteira" element={<WalletPage />} />
             <Route path="/historico" element={<HistoryPage />} />
             <Route path="/profile" element={<ProfilePage />} />

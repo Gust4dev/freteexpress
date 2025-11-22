@@ -1,25 +1,96 @@
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { MapPin, Clock, Phone, MessageSquare, Shield, CheckCircle } from "lucide-react";
+import { Phone, MessageSquare, Shield, CheckCircle, XCircle, Truck, Package, Star } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
-import { LatLng } from 'leaflet';
+import { getFrete, updateOrderStatus, OrderStatus } from "../api/fretes";
+import Spinner from "../components/Spinner";
+import { useAuth } from "../hooks/useAuth";
+import RateDriverModal from "../components/RateDriverModal";
+
+type OrderDetail = {
+  _id: string;
+  status: OrderStatus;
+  origin: { address: string; coords?: [number, number] };
+  destination: { address: string; coords?: [number, number] };
+  transporterId?: {
+    userId: {
+      _id: string;
+      name: string;
+      phone?: string;
+      avatarUrl?: string;
+    };
+    vehicle?: { model: string; plate: string };
+    rating?: number;
+  };
+  clientId: string;
+  price: number;
+  distanceKm: number;
+};
 
 export default function TrackingPage() {
-  // Mock active order
-  const order = {
-    id: "PED-9921",
-    status: "Em trânsito",
-    driver: {
-      name: "Carlos Mendes",
-      vehicle: "Honda CG 160 - ABC-1234",
-      rating: 4.9,
-      phone: "(11) 99999-9999",
-      avatar: "https://i.pravatar.cc/150?u=carlos"
-    },
-    origin: "Rua Augusta, 1500 - Consolação, SP",
-    destination: "Av. Paulista, 1000 - Bela Vista, SP",
-    eta: "14:45",
-    progress: 65
-  };
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [order, setOrder] = useState<OrderDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [updating, setUpdating] = useState(false);
+  const [showRatingModal, setShowRatingModal] = useState(false);
+
+  useEffect(() => {
+    if (!id) return;
+    loadOrder();
+  }, [id]);
+
+  function loadOrder() {
+    if (!id) return;
+    getFrete(id)
+      .then((data) => {
+        setOrder(data);
+        // Auto-show rating modal if delivered and I am the client
+        if (data.status === 'delivered' && user?.role === 'client' && data.clientId === user.id) {
+           // Check if already rated? Backend doesn't tell us yet, but we can show button
+           // For now, let's just show button, not auto-popup to avoid annoyance
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load order", err);
+        setError("Não foi possível carregar os detalhes do pedido.");
+      })
+      .finally(() => setLoading(false));
+  }
+
+  async function handleStatusUpdate(newStatus: OrderStatus) {
+    if (!id || !order) return;
+    setUpdating(true);
+    try {
+      await updateOrderStatus(id, newStatus);
+      await loadOrder(); 
+    } catch (err) {
+      console.error("Failed to update status", err);
+      alert("Erro ao atualizar status.");
+    } finally {
+      setUpdating(false);
+    }
+  }
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900"><Spinner /></div>;
+  if (error || !order) return <div className="min-h-screen flex items-center justify-center text-red-500">{error || "Pedido não encontrado"}</div>;
+
+  const isDriver = user?.role === 'driver' && order.transporterId?.userId._id === user.id;
+  const isClient = user?.role === 'client' && order.clientId === user.id;
+
+  const driverInfo = order.transporterId ? {
+    name: order.transporterId.userId.name,
+    vehicle: order.transporterId.vehicle ? `${order.transporterId.vehicle.model} - ${order.transporterId.vehicle.plate}` : "Veículo não informado",
+    rating: order.transporterId.rating || 5.0,
+    phone: order.transporterId.userId.phone || "Sem telefone",
+    avatar: order.transporterId.userId.avatarUrl || `https://ui-avatars.com/api/?name=${order.transporterId.userId.name}&background=random`
+  } : null;
+
+  const originCoords = order.origin.coords || [-23.5505, -46.6333];
+  const destCoords = order.destination.coords || [-23.561, -46.655];
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6 lg:p-10 font-sans">
@@ -34,10 +105,61 @@ export default function TrackingPage() {
           >
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">Status do Pedido</h2>
-              <span className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-sm font-bold animate-pulse">
-                {order.status}
+              <span className={`px-3 py-1 rounded-full text-sm font-bold animate-pulse ${
+                order.status === 'delivered' ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'
+              }`}>
+                {order.status === 'in_route' ? 'Em Trânsito' : 
+                 order.status === 'created' ? 'Aguardando Motorista' :
+                 order.status === 'accepted' ? 'Aceito' :
+                 order.status === 'delivered' ? 'Entregue' : 'Cancelado'}
               </span>
             </div>
+
+            {/* Client Actions: Rate Driver */}
+            {isClient && order.status === 'delivered' && (
+              <div className="mb-6">
+                <button 
+                  onClick={() => setShowRatingModal(true)}
+                  className="w-full py-3 bg-yellow-500 hover:bg-yellow-600 text-white rounded-xl font-bold shadow-lg shadow-yellow-500/20 transition-all flex items-center justify-center gap-2"
+                >
+                  <Star className="w-5 h-5 fill-current" /> Avaliar Motorista
+                </button>
+              </div>
+            )}
+
+            {/* Driver Controls */}
+            {isDriver && order.status !== 'delivered' && order.status !== 'cancelled' && (
+              <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-2xl border border-blue-100 dark:border-blue-800">
+                <h3 className="font-bold text-blue-800 dark:text-blue-300 mb-3">Ações do Motorista</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {order.status === 'accepted' && (
+                    <button 
+                      onClick={() => handleStatusUpdate('in_route')}
+                      disabled={updating}
+                      className="col-span-2 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2"
+                    >
+                      <Truck className="w-5 h-5" /> Iniciar Rota
+                    </button>
+                  )}
+                  {order.status === 'in_route' && (
+                    <button 
+                      onClick={() => handleStatusUpdate('delivered')}
+                      disabled={updating}
+                      className="col-span-2 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-lg shadow-green-500/20 transition-all flex items-center justify-center gap-2"
+                    >
+                      <CheckCircle className="w-5 h-5" /> Confirmar Entrega
+                    </button>
+                  )}
+                  <button 
+                    onClick={() => handleStatusUpdate('cancelled')}
+                    disabled={updating}
+                    className="col-span-2 py-2 bg-red-100 hover:bg-red-200 text-red-600 dark:bg-red-900/30 dark:hover:bg-red-900/50 dark:text-red-400 rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
+                  >
+                    <XCircle className="w-5 h-5" /> Cancelar Corrida
+                  </button>
+                </div>
+              </div>
+            )}
 
             <div className="relative py-4">
               <div className="absolute left-3 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-700" />
@@ -45,9 +167,8 @@ export default function TrackingPage() {
               <div className="relative flex gap-4 mb-8">
                 <div className="w-6 h-6 rounded-full bg-green-500 border-4 border-white dark:border-gray-800 z-10 flex-shrink-0" />
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Coleta realizada</p>
-                  <p className="font-medium text-gray-900 dark:text-white text-sm">{order.origin}</p>
-                  <p className="text-xs text-gray-400 mt-1">14:10</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Origem</p>
+                  <p className="font-medium text-gray-900 dark:text-white text-sm">{order.origin.address}</p>
                 </div>
               </div>
 
@@ -55,46 +176,55 @@ export default function TrackingPage() {
                 <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 border-4 border-white dark:border-gray-800 z-10 flex-shrink-0" />
                 <div>
                   <p className="text-sm text-gray-500 dark:text-gray-400">Destino</p>
-                  <p className="font-medium text-gray-900 dark:text-white text-sm">{order.destination}</p>
-                  <p className="text-xs text-blue-500 font-bold mt-1">Previsão: {order.eta}</p>
+                  <p className="font-medium text-gray-900 dark:text-white text-sm">{order.destination.address}</p>
                 </div>
               </div>
             </div>
           </motion.div>
 
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700"
-          >
-            <h3 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Motorista</h3>
-            <div className="flex items-center gap-4 mb-6">
-              <img src={order.driver.avatar} alt={order.driver.name} className="w-14 h-14 rounded-full object-cover border-2 border-white dark:border-gray-700 shadow-md" />
-              <div>
-                <h4 className="font-bold text-gray-900 dark:text-white">{order.driver.name}</h4>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{order.driver.vehicle}</p>
-                <div className="flex items-center gap-1 text-yellow-500 text-xs mt-1">
-                  <span>★</span> {order.driver.rating}
+          {!isDriver && driverInfo ? (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700"
+            >
+              <h3 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Motorista</h3>
+              <div className="flex items-center gap-4 mb-6">
+                <img src={driverInfo.avatar} alt={driverInfo.name} className="w-14 h-14 rounded-full object-cover border-2 border-white dark:border-gray-700 shadow-md" />
+                <div>
+                  <h4 className="font-bold text-gray-900 dark:text-white">{driverInfo.name}</h4>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{driverInfo.vehicle}</p>
+                  <div className="flex items-center gap-1 text-yellow-500 text-xs mt-1">
+                    <span>★</span> {driverInfo.rating}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <button className="flex items-center justify-center gap-2 py-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-semibold hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors">
-                <Phone className="w-4 h-4" /> Ligar
-              </button>
-              <button className="flex items-center justify-center gap-2 py-3 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
-                <MessageSquare className="w-4 h-4" /> Chat
-              </button>
-            </div>
-          </motion.div>
+              <div className="grid grid-cols-2 gap-3">
+                <button className="flex items-center justify-center gap-2 py-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-semibold hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors">
+                  <Phone className="w-4 h-4" /> Ligar
+                </button>
+                <button className="flex items-center justify-center gap-2 py-3 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                  <MessageSquare className="w-4 h-4" /> Chat
+                </button>
+              </div>
+            </motion.div>
+          ) : !isDriver && (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 text-center"
+            >
+              <p className="text-gray-500 dark:text-gray-400">Aguardando um motorista aceitar o pedido...</p>
+            </motion.div>
+          )}
         </div>
 
         {/* Right Column: Map */}
         <div className="lg:col-span-2 h-[500px] lg:h-auto bg-gray-200 dark:bg-gray-800 rounded-3xl overflow-hidden relative shadow-inner z-0">
           <MapContainer 
-            center={[-23.561, -46.655]} 
+            center={originCoords} 
             zoom={13} 
             style={{ height: '100%', width: '100%' }}
             zoomControl={false}
@@ -103,20 +233,20 @@ export default function TrackingPage() {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            <Marker position={[-23.5505, -46.6333]}>
-              <Popup>Coleta: Rua Augusta, 1500</Popup>
+            <Marker position={originCoords}>
+              <Popup>Coleta: {order.origin.address}</Popup>
             </Marker>
-            <Marker position={[-23.561, -46.655]}>
-              <Popup>Destino: Av. Paulista, 1000</Popup>
+            <Marker position={destCoords}>
+              <Popup>Destino: {order.destination.address}</Popup>
             </Marker>
-            <Polyline positions={[[-23.5505, -46.6333], [-23.561, -46.655]]} color="blue" />
+            <Polyline positions={[originCoords, destCoords]} color="blue" />
           </MapContainer>
           
           {/* Overlay Info */}
           <div className="absolute top-6 left-6 right-6 flex justify-between items-start pointer-events-none z-[1000]">
             <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md px-4 py-2 rounded-xl shadow-lg pointer-events-auto">
-              <p className="text-xs text-gray-500 dark:text-gray-400">Tempo Restante</p>
-              <p className="text-xl font-bold text-gray-900 dark:text-white">12 min</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Distância</p>
+              <p className="text-xl font-bold text-gray-900 dark:text-white">{order.distanceKm.toFixed(1)} km</p>
             </div>
             <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md p-2 rounded-full shadow-lg pointer-events-auto text-green-600">
               <Shield className="w-6 h-6" />
@@ -125,6 +255,16 @@ export default function TrackingPage() {
         </div>
 
       </div>
+      
+      {driverInfo && (
+        <RateDriverModal 
+          isOpen={showRatingModal} 
+          onClose={() => setShowRatingModal(false)}
+          orderId={id!}
+          driverName={driverInfo.name}
+          driverAvatar={driverInfo.avatar}
+        />
+      )}
     </div>
   );
 }

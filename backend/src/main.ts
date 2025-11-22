@@ -15,6 +15,7 @@ import ordersRoutes from "./routes/orders";
 import ratingsRoutes from "./routes/ratings";
 import healthRoutes from "./routes/health";
 import utilsRoutes from "./routes/utils";
+import walletRoutes from "./routes/wallet";
 
 dotenv.config();
 
@@ -37,6 +38,7 @@ app.use("/transporters", transportersRoutes);
 app.use("/orders", ordersRoutes);
 app.use("/ratings", ratingsRoutes);
 app.use("/utils", utilsRoutes);
+app.use("/wallet", walletRoutes);
 
 // simple centralized error handler (fallback)
 app.use(
