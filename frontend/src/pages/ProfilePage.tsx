@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { getAvatarUrl } from "../utils/image";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
@@ -153,7 +154,7 @@ export default function ProfilePage() {
             <div className="relative group">
               <div className="w-32 h-32 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden border-4 border-white dark:border-gray-600 shadow-lg transition-colors duration-500">
                 {user?.avatarUrl ? (
-                  <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover" />
+                  <img src={getAvatarUrl(user.avatarUrl)} alt={user.name} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-gray-400">
                     <UserIcon className="w-12 h-12" />

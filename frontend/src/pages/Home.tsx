@@ -294,7 +294,7 @@ export default function Home({ openAuth }: { openAuth: () => void }) {
                   </li>
                 ))}
               </ul>
-              <Link to="/work" className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-green-600 hover:bg-green-700 text-white font-bold text-lg transition-colors">
+              <Link to="/register?role=driver" className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-green-600 hover:bg-green-700 text-white font-bold text-lg transition-colors">
                 Cadastrar meu Veículo <ArrowRight className="w-5 h-5" />
               </Link>
             </div>

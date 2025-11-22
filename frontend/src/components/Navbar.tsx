@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from "react";
+import { getAvatarUrl } from "../utils/image";
 import { Link, useLocation } from "react-router-dom";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { useAuth } from "../hooks/useAuth";
 import { updateMe } from "../api/auth";
-import logo from "../assets/logo.png";
+import logoIcon from "../assets/logo-icon.png";
 import { 
   Bell, 
   Wallet, 
@@ -98,14 +99,19 @@ export default function Navbar({
         <div className="flex items-center justify-between h-20">
           
           {/* Logo & Brand */}
-          <Link to="/" className="flex items-center gap-3 group">
+          <Link to="/" className="flex items-center gap-0 group relative">
             <div className="relative">
-              <div className="absolute inset-0 bg-blue-600 blur-lg opacity-20 group-hover:opacity-40 transition-opacity rounded-full" />
-              <img src={logo} alt="Frete Express" className="relative w-10 h-10 rounded-xl object-cover shadow-sm transition-transform group-hover:scale-105" />
+              <div className="absolute inset-0 bg-blue-600 blur-xl opacity-0 group-hover:opacity-50 transition-opacity duration-500 rounded-full" />
+              <img src={logoIcon} alt="Frete Express" className="relative w-20 h-20 rounded-xl object-cover transition-transform duration-500 group-hover:scale-110 drop-shadow-2xl" />
             </div>
-            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
-              Frete Express
-            </span>
+            <div className="flex flex-col leading-none group-hover:drop-shadow-[0_0_15px_rgba(37,99,235,0.5)] transition-all duration-500">
+              <span className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
+                Frete
+              </span>
+              <span className="text-2xl font-bold text-blue-600 tracking-tight -mt-1">
+                Express
+              </span>
+            </div>
           </Link>
 
           {/* Desktop Navigation */}

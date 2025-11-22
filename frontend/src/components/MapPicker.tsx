@@ -1,8 +1,30 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Polyline } from 'react-leaflet';
-import { LatLng, LeafletMouseEvent } from 'leaflet';
+import { LatLng, LeafletMouseEvent, Icon } from 'leaflet';
 import { motion, AnimatePresence } from 'framer-motion';
 import { reverseGeocode, fetchRoutePath } from '../api/utils';
+import { MapPin } from 'lucide-react';
+import ReactDOMServer from 'react-dom/server';
+
+// --- Custom Icons ---
+const createCustomIcon = (color: string) => {
+  return new Icon({
+    iconUrl: `data:image/svg+xml;base64,${btoa(
+      ReactDOMServer.renderToString(
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill={color} stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+          <circle cx="12" cy="10" r="3" fill="white" />
+        </svg>
+      )
+    )}`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -32],
+  });
+};
+
+const pickupIcon = createCustomIcon('#9333ea'); // Purple
+const dropoffIcon = createCustomIcon('#2563eb'); // Blue
 
 // --- Hook Isolation Pattern ---
 type MapEventsHandlerProps = {
@@ -25,9 +47,10 @@ type MapPickerProps = {
   destCoords?: [number, number];
   onLocationSelect: (coords: [number, number], address: string) => void;
   className?: string;
+  mode?: 'pickup' | 'dropoff'; // New prop to know which marker to update
 };
 
-export function MapPicker({ initialPosition, originCoords, destCoords, onLocationSelect, className = "" }: MapPickerProps) {
+export function MapPicker({ initialPosition, originCoords, destCoords, onLocationSelect, className = "", mode = 'pickup' }: MapPickerProps) {
   const [position, setPosition] = useState<LatLng | null>(
     initialPosition ? new LatLng(initialPosition[0], initialPosition[1]) : null
   );
@@ -63,6 +86,9 @@ export function MapPicker({ initialPosition, originCoords, destCoords, onLocatio
 
   const handleInteraction = async (latlng: LatLng) => {
     setIsGeocoding(true);
+    // Update local position state only if it matches the current mode's target
+    // But actually, onLocationSelect updates the parent state, which passes back originCoords/destCoords
+    // So we might not need local position state as much, but let's keep it for immediate feedback
     setPosition(latlng);
 
     try {
@@ -120,14 +146,31 @@ export function MapPicker({ initialPosition, originCoords, destCoords, onLocatio
           <Polyline positions={routePath} color="blue" weight={5} opacity={0.7} />
         )}
 
-        {position && (
+        {/* Origin Marker (Purple) */}
+        {originCoords && (
           <Marker
-            draggable={true}
-            eventHandlers={eventHandlers}
-            position={position}
-            ref={markerRef}
+            position={originCoords}
+            icon={pickupIcon}
+            draggable={mode === 'pickup'}
+            eventHandlers={mode === 'pickup' ? eventHandlers : undefined}
+            ref={mode === 'pickup' ? markerRef : undefined}
+            zIndexOffset={100}
           >
-            <Popup>Arraste para ajustar</Popup>
+            <Popup>Ponto de Coleta</Popup>
+          </Marker>
+        )}
+
+        {/* Destination Marker (Blue) */}
+        {destCoords && (
+          <Marker
+            position={destCoords}
+            icon={dropoffIcon}
+            draggable={mode === 'dropoff'}
+            eventHandlers={mode === 'dropoff' ? eventHandlers : undefined}
+            ref={mode === 'dropoff' ? markerRef : undefined}
+            zIndexOffset={100}
+          >
+            <Popup>Destino Final</Popup>
           </Marker>
         )}
         

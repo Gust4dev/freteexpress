@@ -1,5 +1,7 @@
 import { motion } from "framer-motion";
 import { MapPin, Clock, Phone, MessageSquare, Shield, CheckCircle } from "lucide-react";
+import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+import { LatLng } from 'leaflet';
 
 export default function TrackingPage() {
   // Mock active order
@@ -90,11 +92,28 @@ export default function TrackingPage() {
         </div>
 
         {/* Right Column: Map */}
-        <div className="lg:col-span-2 h-[500px] lg:h-auto bg-gray-200 dark:bg-gray-800 rounded-3xl overflow-hidden relative shadow-inner">
-          <div className="absolute inset-0 bg-[url('https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/-46.655,-23.561,14,0/1000x800?access_token=pk.eyJ1IjoiZXhhbXBsZSIsImEiOiJja2xlNyJ9')] bg-cover bg-center opacity-80" />
+        <div className="lg:col-span-2 h-[500px] lg:h-auto bg-gray-200 dark:bg-gray-800 rounded-3xl overflow-hidden relative shadow-inner z-0">
+          <MapContainer 
+            center={[-23.561, -46.655]} 
+            zoom={13} 
+            style={{ height: '100%', width: '100%' }}
+            zoomControl={false}
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            <Marker position={[-23.5505, -46.6333]}>
+              <Popup>Coleta: Rua Augusta, 1500</Popup>
+            </Marker>
+            <Marker position={[-23.561, -46.655]}>
+              <Popup>Destino: Av. Paulista, 1000</Popup>
+            </Marker>
+            <Polyline positions={[[-23.5505, -46.6333], [-23.561, -46.655]]} color="blue" />
+          </MapContainer>
           
           {/* Overlay Info */}
-          <div className="absolute top-6 left-6 right-6 flex justify-between items-start pointer-events-none">
+          <div className="absolute top-6 left-6 right-6 flex justify-between items-start pointer-events-none z-[1000]">
             <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md px-4 py-2 rounded-xl shadow-lg pointer-events-auto">
               <p className="text-xs text-gray-500 dark:text-gray-400">Tempo Restante</p>
               <p className="text-xl font-bold text-gray-900 dark:text-white">12 min</p>
