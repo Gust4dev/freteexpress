@@ -1,16 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Link } from "react-router-dom";
 import ThemeSwitch from "./ThemeSwitch";
 import { useAuth } from "../hooks/useAuth";
 
 export default function ConfigMenu({
   darkMode,
   toggleTheme,
-  onOpenProfile,
 }: {
   darkMode: boolean;
   toggleTheme: () => void;
-  onOpenProfile: () => void;
 }) {
   const { logout } = useAuth();
   const [open, setOpen] = useState(false);
@@ -44,15 +43,31 @@ export default function ConfigMenu({
           >
             <ul className="text-sm">
               <li>
-                <button onClick={() => { setOpen(false); onOpenProfile(); }} className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg">
+                <Link 
+                  to="/profile?tab=profile" 
+                  onClick={() => setOpen(false)} 
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg"
+                >
                   Perfil
-                </button>
+                </Link>
               </li>
               <li>
-                <button className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">Configurações</button>
+                <Link 
+                  to="/profile?tab=settings" 
+                  onClick={() => setOpen(false)} 
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                >
+                  Configurações
+                </Link>
               </li>
               <li>
-                <button className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">Ajuda</button>
+                <Link 
+                  to="/profile?tab=help" 
+                  onClick={() => setOpen(false)} 
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                >
+                  Ajuda
+                </Link>
               </li>
               <li>
                 <button 

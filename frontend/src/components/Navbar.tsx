@@ -20,31 +20,53 @@ import {
   Home,
   MapPin,
   Clock,
-  Search
+  Search,
+  Star,
+  CreditCard,
+  Ticket,
+  FileText,
+  Shield,
+  Car,
+  Sliders,
+  CheckCircle,
+  Info
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Navbar({
   darkMode,
   toggleTheme,
-  onOpenProfile,
 }: {
   darkMode: boolean;
   toggleTheme: () => void;
-  onOpenProfile: () => void;
 }) {
   const queryClient = useQueryClient();
   const { user, token, login, logout } = useAuth();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
+  const notificationRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown when clicking outside
+  // Mock Notifications
+  const notifications = [
+    { id: 1, title: "Pagamento Recebido", message: "Você recebeu um pagamento de R$ 150,00.", time: "2 min atrás", type: "success", read: false },
+    { id: 2, title: "Nova Mensagem", message: "O motorista João enviou uma mensagem.", time: "1 hora atrás", type: "info", read: false },
+    { id: 3, title: "Frete Concluído", message: "A entrega #1234 foi finalizada com sucesso.", time: "3 horas atrás", type: "success", read: true },
+    { id: 4, title: "Atualização de Sistema", message: "Novas funcionalidades disponíveis no app.", time: "1 dia atrás", type: "info", read: true },
+  ];
+
+  const unreadCount = notifications.filter(n => !n.read).length;
+
+  // Close dropdowns when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
         setIsProfileOpen(false);
+      }
+      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
+        setIsNotificationsOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -159,31 +181,56 @@ export default function Navbar({
           <div className="hidden md:flex items-center gap-4">
             {user && (
               <>
-                {/* Role Switcher */}
-                <button
-                  onClick={handleToggleRole}
-                  disabled={roleMutation.isPending}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-xs font-medium text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700"
-                >
-                  <div className={`w-2 h-2 rounded-full ${user.role === 'driver' ? 'bg-green-500' : 'bg-blue-500'}`} />
-                  {user.role === 'client' ? 'Cliente' : 'Motorista'}
-                </button>
-
-                <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-2" />
-
-                {/* Wallet (Driver Only) */}
-                {user.role === 'driver' && (
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-100 dark:border-green-900/30">
-                    <Wallet className="w-4 h-4" />
-                    <span className="text-sm font-bold">R$ 1.250,00</span>
-                  </div>
-                )}
-
                 {/* Notifications */}
-                <button className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400">
-                  <Bell className="w-5 h-5" />
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-gray-900" />
-                </button>
+                <div className="relative" ref={notificationRef}>
+                  <button 
+                    onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                    className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400"
+                  >
+                    <Bell className="w-5 h-5" />
+                    {unreadCount > 0 && (
+                      <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-gray-900" />
+                    )}
+                  </button>
+
+                  <AnimatePresence>
+                    {isNotificationsOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden z-50"
+                      >
+                        <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                          <h3 className="font-semibold text-gray-900 dark:text-white">Notificações</h3>
+                          <span className="text-xs text-blue-600 dark:text-blue-400 cursor-pointer hover:underline">Marcar todas como lidas</span>
+                        </div>
+                        <div className="max-h-96 overflow-y-auto">
+                          {notifications.map((notification) => (
+                            <div key={notification.id} className={`px-4 py-3 border-b border-gray-50 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors cursor-pointer ${!notification.read ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}>
+                              <div className="flex gap-3">
+                                <div className={`mt-1 p-1.5 rounded-full h-fit ${notification.type === 'success' ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' : 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'}`}>
+                                  {notification.type === 'success' ? <CheckCircle className="w-4 h-4" /> : <Info className="w-4 h-4" />}
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium text-gray-900 dark:text-white">{notification.title}</p>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{notification.message}</p>
+                                  <p className="text-[10px] text-gray-400 mt-1">{notification.time}</p>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="p-2 text-center border-t border-gray-100 dark:border-gray-700">
+                          <button className="text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                            Ver todas as notificações
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
 
                 {/* Profile Dropdown */}
                 <div className="relative" ref={profileRef}>
@@ -214,55 +261,130 @@ export default function Navbar({
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden py-2"
+                        className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden z-50"
                       >
-                        <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 mb-2">
-                          <p className="text-sm font-semibold text-gray-900 dark:text-white">{user.name}</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
+                        {/* Header */}
+                        <div className="px-6 py-4 bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 border-b border-gray-100 dark:border-gray-700">
+                          <div className="flex items-center gap-4 mb-3">
+                            <div className="w-14 h-14 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden border-2 border-white dark:border-gray-600 shadow-sm">
+                              {user.avatarUrl ? (
+                                <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                  <UserIcon className="w-6 h-6" />
+                                </div>
+                              )}
+                            </div>
+                            <div>
+                              <p className="text-base font-bold text-gray-900 dark:text-white">{user.name}</p>
+                              <div className="flex items-center gap-1 text-yellow-500 text-sm font-medium">
+                                <Star className="w-3.5 h-3.5 fill-current" />
+                                <span>4.9</span>
+                              </div>
+                            </div>
+                          </div>
+                          <Link 
+                            to="/profile?tab=profile"
+                            onClick={() => setIsProfileOpen(false)}
+                            className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline"
+                          >
+                            Editar perfil
+                          </Link>
                         </div>
 
-                        <button 
-                          onClick={() => { setIsProfileOpen(false); onOpenProfile(); }}
-                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
-                        >
-                          <UserIcon className="w-4 h-4" />
-                          Meu Perfil
-                        </button>
-                        
-                        <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                          <Settings className="w-4 h-4" />
-                          Configurações
-                        </button>
+                        <div className="py-2">
+                          {/* Context Aware Section */}
+                          {user.role === 'client' ? (
+                            <>
+                              <Link to="/carteira" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-6 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                <CreditCard className="w-4 h-4 text-gray-400" />
+                                Carteira / Pagamentos
+                              </Link>
+                              <Link to="/profile?tab=addresses" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-6 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                <MapPin className="w-4 h-4 text-gray-400" />
+                                Endereços Favoritos
+                              </Link>
+                              <Link to="/profile?tab=coupons" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-6 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                <Ticket className="w-4 h-4 text-gray-400" />
+                                Cupons
+                              </Link>
+                              <Link to="/profile?tab=history" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-6 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                <Clock className="w-4 h-4 text-gray-400" />
+                                Histórico Completo
+                              </Link>
+                            </>
+                          ) : (
+                            <>
+                              <Link to="/carteira" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-6 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                <Wallet className="w-4 h-4 text-gray-400" />
+                                Ganhos e Extrato
+                              </Link>
+                              <Link to="/profile?tab=documents" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-6 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                <FileText className="w-4 h-4 text-gray-400" />
+                                Documentos
+                              </Link>
+                              <Link to="/profile?tab=preferences" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-6 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                <MapPin className="w-4 h-4 text-gray-400" />
+                                Locais Favoritos
+                              </Link>
+                            </>
+                          )}
 
-                        <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                          <HelpCircle className="w-4 h-4" />
-                          Ajuda e Suporte
-                        </button>
+                          <div className="my-2 border-t border-gray-100 dark:border-gray-700" />
 
-                        <div className="my-2 border-t border-gray-100 dark:border-gray-700" />
+                          {/* Settings & Support */}
+                          <Link to="/profile?tab=settings" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-6 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                            <Settings className="w-4 h-4 text-gray-400" />
+                            Configurações
+                          </Link>
+                          <Link to="/profile?tab=security" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-6 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                            <Shield className="w-4 h-4 text-gray-400" />
+                            Segurança
+                          </Link>
+                          <Link to="/profile?tab=help" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-6 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                            <HelpCircle className="w-4 h-4 text-gray-400" />
+                            Ajuda e Suporte
+                          </Link>
 
-                        <div className="px-4 py-2 flex items-center justify-between">
-                          <span className="text-sm text-gray-700 dark:text-gray-300 flex items-center gap-3">
-                            {darkMode ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
-                            Tema {darkMode ? 'Escuro' : 'Claro'}
-                          </span>
+                          <div className="my-2 border-t border-gray-100 dark:border-gray-700" />
+
+                          {/* Mode Switcher */}
                           <button 
-                            onClick={toggleTheme}
-                            className={`w-10 h-5 rounded-full transition-colors relative ${darkMode ? 'bg-indigo-600' : 'bg-gray-300'}`}
+                            onClick={handleToggleRole}
+                            disabled={roleMutation.isPending}
+                            className="w-full flex items-center justify-between px-6 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                           >
-                            <div className={`w-3 h-3 bg-white rounded-full absolute top-1 transition-all ${darkMode ? 'left-6' : 'left-1'}`} />
+                            <div className="flex items-center gap-3">
+                              {user.role === 'client' ? <Car className="w-4 h-4 text-gray-400" /> : <UserIcon className="w-4 h-4 text-gray-400" />}
+                              <span>Modo {user.role === 'client' ? 'Motorista' : 'Passageiro'}</span>
+                            </div>
+                            <div className={`w-8 h-4 rounded-full transition-colors relative ${user.role === 'driver' ? 'bg-green-500' : 'bg-gray-300'}`}>
+                              <div className={`w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all ${user.role === 'driver' ? 'left-4.5' : 'left-0.5'}`} />
+                            </div>
+                          </button>
+
+                           {/* Theme Switcher */}
+                           <div className="flex items-center justify-between px-6 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer" onClick={toggleTheme}>
+                            <div className="flex items-center gap-3">
+                              {darkMode ? <Moon className="w-4 h-4 text-gray-400" /> : <Sun className="w-4 h-4 text-gray-400" />}
+                              <span>Modo Escuro</span>
+                            </div>
+                            <div className={`w-8 h-4 rounded-full transition-colors relative ${darkMode ? 'bg-indigo-600' : 'bg-gray-300'}`}>
+                              <div className={`w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all ${darkMode ? 'left-4.5' : 'left-0.5'}`} />
+                            </div>
+                          </div>
+
+                          <div className="my-2 border-t border-gray-100 dark:border-gray-700" />
+
+                          {/* Logout */}
+                          <button 
+                            onClick={() => { setIsProfileOpen(false); logout(); }}
+                            className="w-full flex items-center gap-3 px-6 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors font-medium"
+                          >
+                            <LogOut className="w-4 h-4" />
+                            Sair da Conta
                           </button>
                         </div>
-
-                        <div className="my-2 border-t border-gray-100 dark:border-gray-700" />
-
-                        <button 
-                          onClick={() => { setIsProfileOpen(false); logout(); }}
-                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                        >
-                          <LogOut className="w-4 h-4" />
-                          Sair da Conta
-                        </button>
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -353,13 +475,14 @@ export default function Navbar({
                     </button>
                   </div>
 
-                  <button 
-                    onClick={() => { setIsMobileMenuOpen(false); onOpenProfile(); }}
+                  <Link 
+                    to="/profile?tab=profile"
+                    onClick={() => setIsMobileMenuOpen(false)}
                     className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50"
                   >
                     <UserIcon className="w-5 h-5" />
                     Meu Perfil
-                  </button>
+                  </Link>
 
                   <button 
                     onClick={toggleTheme}

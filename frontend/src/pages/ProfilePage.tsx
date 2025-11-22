@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useRef, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -21,7 +21,13 @@ import {
   HelpCircle,
   FileText,
   ChevronRight,
-  X
+  X,
+  Wallet,
+  MapPin,
+  Ticket,
+  Clock,
+  FileCheck,
+  Sliders
 } from "lucide-react";
 
 type Order = {
@@ -47,12 +53,19 @@ const Toast = ({ message, type, onClose }: { message: string; type: "success" | 
   </motion.div>
 );
 
-export default function HomeDashboard() {
+export default function ProfilePage() {
   const { user, logout, login, token, darkMode, toggleTheme } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<"overview" | "profile" | "settings">("overview");
+  
+  type TabType = "overview" | "profile" | "settings" | "wallet" | "addresses" | "coupons" | "history" | "documents" | "preferences" | "security" | "help";
+  const activeTab = (searchParams.get("tab") as TabType) || "profile";
+
+  const setActiveTab = (tab: TabType) => {
+    setSearchParams({ tab });
+  };
   
   // Toast State
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
@@ -121,6 +134,7 @@ export default function HomeDashboard() {
   const tabs = [
     { id: "overview", label: "Visão Geral", icon: LayoutDashboard },
     { id: "profile", label: "Meu Perfil", icon: UserIcon },
+    { id: "wallet", label: "Carteira", icon: Wallet },
     { id: "settings", label: "Configurações", icon: Settings },
   ];
 
@@ -294,6 +308,28 @@ export default function HomeDashboard() {
                   </div>
                 </div>
               </div>
+            )}
+
+            {/* Placeholder Tabs */}
+            {["wallet", "addresses", "coupons", "history", "documents", "preferences", "security", "help"].includes(activeTab) && (
+               <div className="bg-white dark:bg-gray-800 rounded-2xl p-12 shadow-sm border border-gray-200 dark:border-gray-700 max-w-2xl mx-auto text-center transition-colors duration-500">
+                 <div className="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-6">
+                    {activeTab === "wallet" && <Wallet className="w-10 h-10 text-gray-400" />}
+                    {activeTab === "addresses" && <MapPin className="w-10 h-10 text-gray-400" />}
+                    {activeTab === "coupons" && <Ticket className="w-10 h-10 text-gray-400" />}
+                    {activeTab === "history" && <Clock className="w-10 h-10 text-gray-400" />}
+                    {activeTab === "documents" && <FileCheck className="w-10 h-10 text-gray-400" />}
+                    {activeTab === "preferences" && <MapPin className="w-10 h-10 text-gray-400" />}
+                    {activeTab === "security" && <Shield className="w-10 h-10 text-gray-400" />}
+                    {activeTab === "help" && <HelpCircle className="w-10 h-10 text-gray-400" />}
+                 </div>
+                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 capitalize">
+                   {activeTab === "wallet" ? "Carteira & Pagamentos" : activeTab === "preferences" ? "Locais Favoritos" : activeTab}
+                 </h2>
+                 <p className="text-gray-500 dark:text-gray-400">
+                   Esta funcionalidade estará disponível em breve.
+                 </p>
+               </div>
             )}
 
             {activeTab === "settings" && (
