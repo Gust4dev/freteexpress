@@ -42,7 +42,7 @@ export default function Navbar({
   toggleTheme: () => void;
 }) {
   const queryClient = useQueryClient();
-  const { user, token, login, logout } = useAuth();
+  const { user, token, login, logout, viewMode, toggleViewMode } = useAuth();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -74,24 +74,14 @@ export default function Navbar({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const roleMutation = useMutation({
-    mutationFn: updateMe,
-    onSuccess: (updatedUser) => {
-      login(token || "", updatedUser, true);
-      queryClient.invalidateQueries({ queryKey: ["orders"] });
-    },
-    onError: (err) => {
-      console.error("Falha ao trocar role", err);
-    },
-  });
-
   const handleToggleRole = () => {
-    if (!user) return;
-    const newRole = user.role === "client" ? "driver" : "client";
-    roleMutation.mutate({ role: newRole });
+    toggleViewMode();
   };
 
   const isActive = (path: string) => location.pathname === path;
+  
+  // Determine effective role for UI rendering
+  const effectiveRole = viewMode || user?.role;
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md transition-colors duration-500">
@@ -125,7 +115,7 @@ export default function Navbar({
             </Link>
 
             {/* Client Navigation */}
-            {user?.role === 'client' && (
+            {effectiveRole === 'client' && (
               <>
                 <Link 
                   to="/fazer-frete" 
@@ -152,7 +142,7 @@ export default function Navbar({
             )}
 
             {/* Driver Navigation */}
-            {user?.role === 'driver' && (
+            {effectiveRole === 'driver' && (
               <>
                 <Link 
                   to="/buscar-fretes" 
@@ -300,7 +290,7 @@ export default function Navbar({
 
                         <div className="py-2">
                           {/* Context Aware Section */}
-                          {user.role === 'client' ? (
+                          {effectiveRole === 'client' ? (
                             <>
                               <Link to="/carteira" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-6 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                                 <CreditCard className="w-4 h-4 text-gray-400" />
@@ -338,7 +328,6 @@ export default function Navbar({
 
                           <div className="my-2 border-t border-gray-100 dark:border-gray-700" />
 
-                          {/* Settings & Support */}
                           <Link to="/profile?tab=settings" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-6 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                             <Settings className="w-4 h-4 text-gray-400" />
                             Configurações
@@ -354,20 +343,21 @@ export default function Navbar({
 
                           <div className="my-2 border-t border-gray-100 dark:border-gray-700" />
 
-                          {/* Mode Switcher */}
-                          <button 
-                            onClick={handleToggleRole}
-                            disabled={roleMutation.isPending}
-                            className="w-full flex items-center justify-between px-6 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
-                          >
-                            <div className="flex items-center gap-3">
-                              {user.role === 'client' ? <Car className="w-4 h-4 text-gray-400" /> : <UserIcon className="w-4 h-4 text-gray-400" />}
-                              <span>Modo {user.role === 'client' ? 'Motorista' : 'Passageiro'}</span>
-                            </div>
-                            <div className={`w-8 h-4 rounded-full transition-colors relative ${user.role === 'driver' ? 'bg-green-500' : 'bg-gray-300'}`}>
-                              <div className={`w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all ${user.role === 'driver' ? 'left-4.5' : 'left-0.5'}`} />
-                            </div>
-                          </button>
+                          {/* Mode Switcher - Only for Admin/Tester */}
+                          {(user.role === 'admin' || user.role === 'tester') && (
+                            <button 
+                              onClick={handleToggleRole}
+                              className="w-full flex items-center justify-between px-6 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                            >
+                              <div className="flex items-center gap-3">
+                                {effectiveRole === 'client' ? <Car className="w-4 h-4 text-gray-400" /> : <UserIcon className="w-4 h-4 text-gray-400" />}
+                                <span>Modo {effectiveRole === 'client' ? 'Motorista' : 'Passageiro'}</span>
+                              </div>
+                              <div className={`w-8 h-4 rounded-full transition-colors relative ${effectiveRole === 'driver' ? 'bg-green-500' : 'bg-gray-300'}`}>
+                                <div className={`w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all ${effectiveRole === 'driver' ? 'left-4.5' : 'left-0.5'}`} />
+                              </div>
+                            </button>
+                          )}
 
                            {/* Theme Switcher */}
                            <div className="flex items-center justify-between px-6 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer" onClick={toggleTheme}>
@@ -436,7 +426,7 @@ export default function Navbar({
               </Link>
 
               {/* Mobile Client Links */}
-              {user?.role === 'client' && (
+              {effectiveRole === 'client' && (
                 <>
                   <Link to="/fazer-frete" className="flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white font-medium">
                     <LayoutDashboard className="w-5 h-5" />
@@ -454,7 +444,7 @@ export default function Navbar({
               )}
 
               {/* Mobile Driver Links */}
-              {user?.role === 'driver' && (
+              {effectiveRole === 'driver' && (
                 <>
                   <Link to="/buscar-fretes" className="flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white font-medium">
                     <Search className="w-5 h-5" />
@@ -469,26 +459,26 @@ export default function Navbar({
               
               {user ? (
                 <>
-                  <div className="border-t border-gray-100 dark:border-gray-800 my-2" />
-                  
-                  <div className="flex items-center justify-between px-4">
-                    <span className="text-sm font-medium text-gray-500">Modo {user.role === 'client' ? 'Cliente' : 'Motorista'}</span>
-                    <button
-                      onClick={handleToggleRole}
-                      className="px-3 py-1.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-bold"
-                    >
-                      Trocar
-                    </button>
-                  </div>
-
-                  <Link 
-                    to="/profile?tab=profile"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50"
-                  >
+                  <Link to="/profile" className="flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white font-medium">
                     <UserIcon className="w-5 h-5" />
                     Meu Perfil
                   </Link>
+
+                  {/* Mobile Mode Switcher - Only for Admin/Tester */}
+                  {(user.role === 'admin' || user.role === 'tester') && (
+                    <button 
+                      onClick={handleToggleRole}
+                      className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                    >
+                      <div className="flex items-center gap-3">
+                        {effectiveRole === 'client' ? <Car className="w-5 h-5" /> : <UserIcon className="w-5 h-5" />}
+                        <span>Modo {effectiveRole === 'client' ? 'Motorista' : 'Passageiro'}</span>
+                      </div>
+                      <div className={`w-10 h-5 rounded-full transition-colors relative ${effectiveRole === 'driver' ? 'bg-green-500' : 'bg-gray-300'}`}>
+                        <div className={`w-3 h-3 bg-white rounded-full absolute top-1 transition-all ${effectiveRole === 'driver' ? 'left-6' : 'left-1'}`} />
+                      </div>
+                    </button>
+                  )}
 
                   <button 
                     onClick={toggleTheme}

@@ -8,6 +8,6 @@ router.use(authMiddleware());
 
 router.get("/balance", getBalance);
 router.get("/transactions", getTransactions);
-router.post("/add", addFunds);
+router.post("/add", authMiddleware(["tester", "admin"]), addFunds);
 
 export default router;

@@ -43,6 +43,7 @@ const OrderSchema = new Schema<IOrder>(
       required: false,
       ref: "Transporter",
       default: null,
+      index: true,
     },
     origin: {
       address: { type: String, required: true, trim: true },
@@ -65,6 +66,7 @@ const OrderSchema = new Schema<IOrder>(
       required: true,
       enum: ["created", "accepted", "in_route", "delivered", "cancelled"],
       default: "created",
+      index: true,
     },
   },
   { timestamps: true }
@@ -72,5 +74,6 @@ const OrderSchema = new Schema<IOrder>(
 
 OrderSchema.index({ "origin.coords": "2dsphere" });
 OrderSchema.index({ "destination.coords": "2dsphere" });
+OrderSchema.index({ createdAt: -1 });
 
 export const Order = model<IOrder>("Order", OrderSchema);

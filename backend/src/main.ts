@@ -6,6 +6,7 @@ import cors from "cors";
 import morgan from "morgan";
 import path from "path";
 import multer from "multer";
+import rateLimit from "express-rate-limit";
 
 // routes
 import authRoutes from "./routes/auth";
@@ -26,6 +27,22 @@ app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
+
+// Rate Limiting
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+app.use(globalLimiter);
+
+const authLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10, // Limit each IP to 10 login/register requests per hour
+  message: "Too many accounts created from this IP, please try again after an hour"
+});
+app.use("/auth", authLimiter);
 
 // Serve static files
 app.use("/uploads", express.static(path.resolve(__dirname, "..", "uploads")));

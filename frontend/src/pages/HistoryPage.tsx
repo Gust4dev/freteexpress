@@ -21,8 +21,8 @@ export default function HistoryPage() {
 
   useEffect(() => {
     listFretes()
-      .then((data) => {
-        setOrders(data);
+      .then((res: any) => {
+        setOrders(res.data);
       })
       .catch((err) => {
         console.error("Failed to fetch orders", err);

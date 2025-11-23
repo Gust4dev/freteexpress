@@ -26,7 +26,7 @@ const TransporterSchema = new Schema<ITransporter>(
         url: { type: String, required: true },
       },
     ],
-    validated: { type: Boolean, default: false },
+    validated: { type: Boolean, default: false, index: true },
     vehicle: {
       type: { type: String, required: false },
       plate: { type: String, required: false, trim: true },

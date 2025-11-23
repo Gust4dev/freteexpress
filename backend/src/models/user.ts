@@ -6,7 +6,7 @@ export interface IUser extends Document {
   passwordHash: string;
   phone?: string;
   avatarUrl?: string;
-  role: "client" | "driver";
+  role: "client" | "driver" | "admin" | "tester";
   balance: number;
   createdAt?: Date;
   updatedAt?: Date;
@@ -27,8 +27,9 @@ const UserSchema = new Schema<IUser>(
     role: {
       type: String,
       required: true,
-      enum: ["client", "driver"],
+      enum: ["client", "driver", "admin", "tester"],
       default: "client",
+      index: true,
     },
     avatarUrl: { type: String, required: false },
     balance: { type: Number, default: 0 },

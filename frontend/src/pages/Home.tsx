@@ -29,10 +29,11 @@ import ClientHome from "../components/ClientHome";
 import logo from "../assets/logo.png";
 
 export default function Home({ openAuth }: { openAuth: () => void }) {
-  const { user } = useAuth();
+  const { user, viewMode } = useAuth();
+  const effectiveRole = viewMode || user?.role;
 
-  if (user?.role === "driver") return <DriverHome />;
-  if (user?.role === "client") return <ClientHome />;
+  if (effectiveRole === "driver") return <DriverHome />;
+  if (effectiveRole === "client") return <ClientHome />;
 
   return (
     <div className="relative overflow-hidden bg-[#0B0E14] min-h-screen font-sans text-gray-300 selection:bg-blue-500/30">

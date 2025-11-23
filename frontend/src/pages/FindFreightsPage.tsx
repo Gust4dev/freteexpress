@@ -29,9 +29,9 @@ export default function FindFreightsPage() {
   function loadFreights() {
     setLoading(true);
     listFretes()
-      .then((data) => {
+      .then((res: any) => {
         // Filter only created orders (available)
-        const available = data.filter((o: Order) => o.status === 'created');
+        const available = res.data.filter((o: Order) => o.status === 'created');
         setFreights(available);
       })
       .catch(console.error)

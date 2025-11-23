@@ -22,8 +22,8 @@ export async function createFrete(
   return api.post("/orders", payload);
 }
 
-export async function listFretes() {
-  const res = await api.get("/orders");
+export async function listFretes(page = 1, limit = 20) {
+  const res = await api.get(`/orders?page=${page}&limit=${limit}`);
   return res.data;
 }
 

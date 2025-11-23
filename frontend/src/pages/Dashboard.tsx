@@ -47,14 +47,16 @@ export default function Dashboard() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const {
-    data: orders,
+    data: ordersData,
     isLoading,
     error,
-  } = useQuery<Order[]>({
+  } = useQuery({
     queryKey: ["orders", user?.role],
-    queryFn: listFretes,
+    queryFn: () => listFretes(1, 100),
     enabled: !!user,
   });
+
+  const orders = ordersData?.data as Order[] | undefined;
 
   const acceptMutation = useMutation({
     mutationFn: acceptFrete,

@@ -51,49 +51,17 @@ export async function criarPedido(req: Request, res: Response) {
     return res.status(500).json({ error: "internal" });
   }
 }
-
-export async function listarPedidos(req: Request, res: Response) {
-  try {
-    const userId = req.userId!;
-    const role = req.userRole ?? "client";
-
-    if (role === "driver") {
-      const transporter = await Transporter.findOne({ userId }).lean();
-      
-      const query = {
-        $or: [
-          { status: "created", transporterId: null },
-          { transporterId: transporter?._id, status: { $in: ["accepted", "in_route"] } }
-        ]
-      };
-
-      const list = await Order.find(query).sort({ createdAt: -1 }).limit(100).lean();
-      return res.json(list);
-    } else {
-      const list = await Order.find({ clientId: userId }).sort({ createdAt: -1 }).limit(100).lean();
-      return res.json(list);
-    }
-  } catch (err) {
-    console.error("listarPedidos error", err);
-    return res.status(500).json({ error: "internal" });
-  }
-}
-
 export async function aceitarPedido(req: Request, res: Response) {
   try {
     const driverUserId = req.userId!;
-    let transporter = await Transporter.findOne({ userId: driverUserId });
+    const transporter = await Transporter.findOne({ userId: driverUserId });
     
-    // Auto-validate for dev environment
     if (!transporter) {
-      transporter = await Transporter.create({
-        userId: driverUserId,
-        validated: true,
-        documents: [],
-      });
-    } else if (!transporter.validated) {
-      transporter.validated = true;
-      await transporter.save();
+      return res.status(403).json({ error: "driver_not_registered" });
+    }
+
+    if (!transporter.validated) {
+      return res.status(403).json({ error: "driver_not_validated" });
     }
 
     const order = await Order.findById(req.params.id);
@@ -169,6 +137,49 @@ export async function getPedidoPorId(req: Request, res: Response) {
     return res.json(order);
   } catch (err) {
     console.error("getPedidoPorId error", err);
+    return res.status(500).json({ error: "internal" });
+  }
+}
+
+export async function listarPedidos(req: Request, res: Response) {
+  try {
+    const userId = req.userId!;
+    const role = req.userRole ?? "client";
+
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const skip = (page - 1) * limit;
+
+    let query: any = {};
+
+    if (role === "driver") {
+      const transporter = await Transporter.findOne({ userId }).lean();
+      query = {
+        $or: [
+          { status: "created", transporterId: null },
+          { transporterId: transporter?._id, status: { $in: ["accepted", "in_route"] } }
+        ]
+      };
+    } else {
+      query = { clientId: userId };
+    }
+
+    const [total, list] = await Promise.all([
+      Order.countDocuments(query),
+      Order.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).lean()
+    ]);
+
+    return res.json({
+      data: list,
+      meta: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  } catch (err) {
+    console.error("listarPedidos error", err);
     return res.status(500).json({ error: "internal" });
   }
 }

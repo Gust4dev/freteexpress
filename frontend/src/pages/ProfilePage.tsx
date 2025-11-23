@@ -87,11 +87,13 @@ export default function ProfilePage() {
   // Settings State (Mock)
   const [notifications, setNotifications] = useState({ email: true, push: true, sms: false });
 
-  const { data: orders, isLoading } = useQuery<Order[]>({
+  const { data: ordersData, isLoading } = useQuery({
     queryKey: ["orders", user?.role],
-    queryFn: listFretes,
+    queryFn: () => listFretes(1, 100),
     enabled: !!user,
   });
+
+  const orders = ordersData?.data as Order[] | undefined;
 
   const updateMutation = useMutation({
     mutationFn: updateMe,

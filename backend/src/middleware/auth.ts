@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { User } from '../models/user';
 import { Role } from '../constants/roles';
+import { memoryCache } from '../services/cache';
 
 /* estende Request */
 declare global {
@@ -46,12 +47,21 @@ export default function authMiddleware(allowedRoles?: Role | Role[]) {
 
       req.userId = String(sub);
 
-      // Sempre buscar no banco para garantir role atualizada (ignora role do token que pode estar stale)
-      try {
-        const user = await User.findById(req.userId).select('role').lean();
-        if (user && (user as any).role) req.userRole = (user as any).role as Role;
-      } catch (err) {
-        console.warn('auth middleware: failed to load user role', err);
+      // Check cache first
+      const cachedRole = memoryCache.get<Role>(`role:${req.userId}`);
+      if (cachedRole) {
+        req.userRole = cachedRole;
+      } else {
+        // Fetch from DB
+        try {
+          const user = await User.findById(req.userId).select('role').lean();
+          if (user && (user as any).role) {
+            req.userRole = (user as any).role as Role;
+            memoryCache.set(`role:${req.userId}`, req.userRole, 300); // Cache for 5 mins
+          }
+        } catch (err) {
+          console.warn('auth middleware: failed to load user role', err);
+        }
       }
 
       // se não há role exigida, apenas autenticamos

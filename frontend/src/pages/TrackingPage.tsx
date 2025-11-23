@@ -38,8 +38,14 @@ export default function TrackingPage() {
   const [updating, setUpdating] = useState(false);
   const [showRatingModal, setShowRatingModal] = useState(false);
 
+  const [searchId, setSearchId] = useState("");
+
   useEffect(() => {
-    if (!id) return;
+    if (!id) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
     loadOrder();
   }, [id]);
 
@@ -48,10 +54,8 @@ export default function TrackingPage() {
     getFrete(id)
       .then((data) => {
         setOrder(data);
-        // Auto-show rating modal if delivered and I am the client
         if (data.status === 'delivered' && user?.role === 'client' && data.clientId === user.id) {
-           // Check if already rated? Backend doesn't tell us yet, but we can show button
-           // For now, let's just show button, not auto-popup to avoid annoyance
+           // Check if already rated logic
         }
       })
       .catch((err) => {
@@ -75,7 +79,46 @@ export default function TrackingPage() {
     }
   }
 
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault();
+    if (searchId.trim()) {
+      navigate(`/rastreio/${searchId.trim()}`);
+    }
+  }
+
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900"><Spinner /></div>;
+
+  if (!id) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-6">
+        <div className="w-full max-w-md bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-700 text-center">
+          <div className="w-20 h-20 mx-auto bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-400 mb-6">
+            <Truck className="w-10 h-10" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Rastrear Pedido</h1>
+          <p className="text-gray-500 dark:text-gray-400 mb-8">Digite o código do pedido para acompanhar a entrega em tempo real.</p>
+          
+          <form onSubmit={handleSearch} className="space-y-4">
+            <input
+              type="text"
+              placeholder="Ex: 654321..."
+              value={searchId}
+              onChange={(e) => setSearchId(e.target.value)}
+              className="w-full p-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-blue-500 outline-none text-center text-lg font-mono tracking-wider text-gray-900 dark:text-white"
+            />
+            <button 
+              type="submit"
+              disabled={!searchId.trim()}
+              className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/25 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Rastrear Agora
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   if (error || !order) return <div className="min-h-screen flex items-center justify-center text-red-500">{error || "Pedido não encontrado"}</div>;
 
   const isDriver = user?.role === 'driver' && order.transporterId?.userId._id === user.id;
