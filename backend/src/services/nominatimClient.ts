@@ -27,9 +27,9 @@ export const getAddressFromCoords = async (lat: number, lon: number) => {
       params: {
         lat: lat,
         lon: lon,
-        format: 'jsonv2', // Resposta JSON limpa
-        addressdetails: 1, // Inclui componentes (rua, cidade, etc.)
-        zoom: 18, // Nível de detalhe (nível de rua)
+        format: 'jsonv2', // JSON limpinho
+        addressdetails: 1, // Detalhes do endereço
+        zoom: 18, // Zoom na rua
       },
     });
 

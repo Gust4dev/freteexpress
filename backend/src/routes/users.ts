@@ -12,12 +12,12 @@ import { uploadConfig } from "../config/upload";
 
 const router = Router();
 
-// usuário autenticado
+// Usuário logado
 router.get("/me", authMiddleware(), getMeuUsuario);
 router.patch("/me", authMiddleware(), atualizarMeuUsuario);
 router.post("/avatar", authMiddleware(), uploadConfig.single("avatar"), uploadAvatar);
 
-// rotas administrativas / listagem
+// Admin
 router.get("/", authMiddleware(["admin"]), listarUsuarios);
 router.get("/:id", authMiddleware(["admin"]), getUsuarioPorId);
 router.delete("/:id", authMiddleware(["admin"]), deletarUsuario);

@@ -45,10 +45,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     if (token) {
-      // try to load user info (best-effort)
+      // Tenta carregar info do usuário (best-effort)
       api.get("/users/me").then((r) => {
         setUser(r.data);
-        // Initialize viewMode for admin/tester
+        // Define modo de visualização para admin/tester
         if (r.data.role === 'admin' || r.data.role === 'tester') {
           setViewMode('client');
         } else {
@@ -72,7 +72,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setToken(newToken);
     setUser(newUser || null);
     
-    // Initialize viewMode on login
+    // Define modo de visualização no login
     if (newUser && (newUser.role === 'admin' || newUser.role === 'tester')) {
       setViewMode('client');
     } else {
@@ -86,7 +86,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
   function logout() {
-    // Call backend to log out (optional, but good practice)
+    // Chama backend para logout (opcional)
     api.post("/auth/logout").catch(() => {});
     
     setToken(null);

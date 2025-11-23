@@ -10,7 +10,7 @@ const updateSchema = z.object({
   phone: z.string().min(8).optional(),
 });
 
-// GET /users/me
+// Pega dados do user
 router.get("/me", auth(), async (req: Request, res: Response) => {
   try {
     const id = req.userId;
@@ -24,7 +24,7 @@ router.get("/me", auth(), async (req: Request, res: Response) => {
   }
 });
 
-// PATCH /users/me
+// Atualiza dados do user
 router.patch("/me", auth(), async (req: Request, res: Response) => {
   try {
     const id = req.userId;

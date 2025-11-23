@@ -15,10 +15,8 @@ declare global {
 }
 
 /**
- * authMiddleware: aceita Role | Role[] | undefined
- * - authMiddleware() => apenas valida token e injeta req.userId/req.userRole
- * - authMiddleware('client') => exige que userRole === 'client'
- * - authMiddleware(['client','driver']) => exige que userRole esteja entre os permitidos
+ * Middleware de auth.
+ * Se passar roles, ele valida. Se não, só checa o token.
  */
 export default function authMiddleware(allowedRoles?: Role | Role[]) {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -47,33 +45,33 @@ export default function authMiddleware(allowedRoles?: Role | Role[]) {
 
       req.userId = String(sub);
 
-      // Check cache first
+      // Checa o cache antes
       const cachedRole = memoryCache.get<Role>(`role:${req.userId}`);
       if (cachedRole) {
         req.userRole = cachedRole;
       } else {
-        // Fetch from DB
+        // Pega do banco
         try {
           const user = await User.findById(req.userId).select('role').lean();
           if (user && (user as any).role) {
             req.userRole = (user as any).role as Role;
-            memoryCache.set(`role:${req.userId}`, req.userRole, 300); // Cache for 5 mins
+            memoryCache.set(`role:${req.userId}`, req.userRole, 300); // Cache de 5 min
           }
         } catch (err) {
           console.warn('auth middleware: failed to load user role', err);
         }
       }
 
-      // se não há role exigida, apenas autenticamos
+      // Se não pediu role, só autentica
       if (!allowedRoles) return next();
 
-      // normaliza allowedRoles para array
+      // Normaliza pra array
       const allowed = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
 
-      // se userRole não definido -> negar
+      // Sem role -> nega
       if (!req.userRole) return res.status(403).json({ error: 'forbidden_role' });
 
-      // verifica se role do usuário está na lista
+      // Verifica se a role tá liberada
       if (!allowed.includes(req.userRole)) return res.status(403).json({ error: 'forbidden_role' });
 
       return next();

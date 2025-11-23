@@ -36,7 +36,7 @@ type Order = {
   status: OrderStatus;
 };
 
-// Simple Toast Component
+// Componente Toast Simples
 const Toast = ({ message, type, onClose }: { message: string; type: "success" | "error"; onClose: () => void }) => (
   <motion.div
     initial={{ opacity: 0, y: 50, scale: 0.9 }}
@@ -68,7 +68,7 @@ export default function ProfilePage() {
     setSearchParams({ tab });
   };
   
-  // Toast State
+  // Estado do Toast
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
   const showToast = (message: string, type: "success" | "error") => {
@@ -76,7 +76,7 @@ export default function ProfilePage() {
     setTimeout(() => setToast(null), 3000);
   };
   
-  // Profile State
+  // Estado do Perfil
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     name: user?.name || "",
@@ -84,7 +84,7 @@ export default function ProfilePage() {
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Settings State (Mock)
+  // Estado de Configurações (Mock)
   const [notifications, setNotifications] = useState({ email: true, push: true, sms: false });
 
   const { data: ordersData, isLoading } = useQuery({
@@ -144,7 +144,7 @@ export default function ProfilePage() {
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 md:p-8 transition-colors duration-500">
       <div className="max-w-5xl mx-auto">
-        {/* Header Card */}
+        {/* Cartão de Cabeçalho */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -199,7 +199,7 @@ export default function ProfilePage() {
           </div>
         </motion.div>
 
-        {/* Navigation Tabs */}
+        {/* Abas de Navegação */}
         <div className="flex gap-2 mb-8 overflow-x-auto pb-2 justify-center">
           {tabs.map((tab) => (
             <button
@@ -217,7 +217,7 @@ export default function ProfilePage() {
           ))}
         </div>
 
-        {/* Content Area */}
+        {/* Área de Conteúdo */}
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -313,7 +313,7 @@ export default function ProfilePage() {
               </div>
             )}
 
-            {/* Placeholder Tabs */}
+            {/* Abas em Breve */}
             {["wallet", "addresses", "coupons", "history", "documents", "preferences", "security", "help"].includes(activeTab) && (
                <div className="bg-white dark:bg-gray-800 rounded-2xl p-12 shadow-sm border border-gray-200 dark:border-gray-700 max-w-2xl mx-auto text-center transition-colors duration-500">
                  <div className="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -338,7 +338,7 @@ export default function ProfilePage() {
             {activeTab === "settings" && (
               <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-sm border border-gray-200 dark:border-gray-700 max-w-2xl space-y-8 mx-auto transition-colors duration-500">
                 
-                {/* Account Security */}
+                {/* Segurança da Conta */}
                 <div>
                   <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 transition-colors duration-500">
                     <Shield className="w-5 h-5 text-blue-600" />
@@ -369,7 +369,7 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                {/* Notifications */}
+                {/* Notificações */}
                 <div>
                   <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 transition-colors duration-500">
                     <Bell className="w-5 h-5 text-purple-600" />
@@ -406,7 +406,7 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                {/* Appearance */}
+                {/* Aparência */}
                 <div>
                   <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 transition-colors duration-500">
                     <Moon className="w-5 h-5 text-indigo-600" />
@@ -425,7 +425,7 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                {/* Support */}
+                {/* Suporte */}
                 <div>
                   <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 transition-colors duration-500">
                     <HelpCircle className="w-5 h-5 text-orange-600" />
@@ -457,7 +457,7 @@ export default function ProfilePage() {
           </motion.div>
         </AnimatePresence>
 
-        {/* Toast Notification */}
+        {/* Notificação Toast */}
         <AnimatePresence>
           {toast && (
             <Toast 

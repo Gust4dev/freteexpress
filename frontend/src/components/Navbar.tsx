@@ -50,7 +50,7 @@ export default function Navbar({
   const profileRef = useRef<HTMLDivElement>(null);
   const notificationRef = useRef<HTMLDivElement>(null);
 
-  // Mock Notifications
+  // Notificações fake
   const notifications = [
     { id: 1, title: "Pagamento Recebido", message: "Você recebeu um pagamento de R$ 150,00.", time: "2 min atrás", type: "success", read: false },
     { id: 2, title: "Nova Mensagem", message: "O motorista João enviou uma mensagem.", time: "1 hora atrás", type: "info", read: false },
@@ -60,7 +60,7 @@ export default function Navbar({
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  // Close dropdowns when clicking outside
+  // Fecha dropdowns ao clicar fora
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
@@ -80,7 +80,7 @@ export default function Navbar({
 
   const isActive = (path: string) => location.pathname === path;
   
-  // Determine effective role for UI rendering
+  // Define role efetiva pra UI
   const effectiveRole = viewMode || user?.role;
 
   return (
@@ -88,7 +88,7 @@ export default function Navbar({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           
-          {/* Logo & Brand */}
+          {/* Logo */}
           <Link to="/" className="flex items-center gap-0 group relative">
             <div className="relative">
               <div className="absolute inset-0 bg-blue-600 blur-xl opacity-0 group-hover:opacity-50 transition-opacity duration-500 rounded-full" />
@@ -104,7 +104,7 @@ export default function Navbar({
             </div>
           </Link>
 
-          {/* Desktop Navigation */}
+          {/* Nav Desktop */}
           <nav className="hidden md:flex items-center gap-8">
             <Link 
               to="/" 
@@ -114,7 +114,7 @@ export default function Navbar({
               Início
             </Link>
 
-            {/* Client Navigation */}
+            {/* Nav Cliente */}
             {effectiveRole === 'client' && (
               <>
                 <Link 
@@ -141,7 +141,7 @@ export default function Navbar({
               </>
             )}
 
-            {/* Driver Navigation */}
+            {/* Nav Motorista */}
             {effectiveRole === 'driver' && (
               <>
                 <Link 
@@ -161,7 +161,7 @@ export default function Navbar({
               </>
             )}
 
-            {/* Guest Navigation */}
+            {/* Nav Visitante */}
             {!user && (
               <Link 
                 to="/work" 
@@ -173,11 +173,11 @@ export default function Navbar({
             )}
           </nav>
 
-          {/* Right Side Actions */}
+          {/* Ações direita */}
           <div className="hidden md:flex items-center gap-4">
             {user && (
               <>
-                {/* Notifications */}
+                {/* Notificações */}
                 <div className="relative" ref={notificationRef}>
                   <button 
                     onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
@@ -228,7 +228,7 @@ export default function Navbar({
                   </AnimatePresence>
                 </div>
 
-                {/* Profile Dropdown */}
+                {/* Dropdown Perfil */}
                 <div className="relative" ref={profileRef}>
                   <button 
                     onClick={() => setIsProfileOpen(!isProfileOpen)}
@@ -259,7 +259,7 @@ export default function Navbar({
                         transition={{ duration: 0.2 }}
                         className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden z-50"
                       >
-                        {/* Header */}
+                        {/* Cabeçalho */}
                         <div className="px-6 py-4 bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 border-b border-gray-100 dark:border-gray-700">
                           <div className="flex items-center gap-4 mb-3">
                             <div className="w-14 h-14 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden border-2 border-white dark:border-gray-600 shadow-sm">
@@ -289,7 +289,7 @@ export default function Navbar({
                         </div>
 
                         <div className="py-2">
-                          {/* Context Aware Section */}
+                          {/* Seção contextual */}
                           {effectiveRole === 'client' ? (
                             <>
                               <Link to="/carteira" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-6 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
@@ -343,7 +343,7 @@ export default function Navbar({
 
                           <div className="my-2 border-t border-gray-100 dark:border-gray-700" />
 
-                          {/* Mode Switcher - Only for Admin/Tester */}
+                          {/* Troca de modo (Admin/Tester) */}
                           {(user.role === 'admin' || user.role === 'tester') && (
                             <button 
                               onClick={handleToggleRole}
@@ -359,7 +359,7 @@ export default function Navbar({
                             </button>
                           )}
 
-                           {/* Theme Switcher */}
+                           {/* Tema */}
                            <div className="flex items-center justify-between px-6 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer" onClick={toggleTheme}>
                             <div className="flex items-center gap-3">
                               {darkMode ? <Moon className="w-4 h-4 text-gray-400" /> : <Sun className="w-4 h-4 text-gray-400" />}
@@ -372,7 +372,7 @@ export default function Navbar({
 
                           <div className="my-2 border-t border-gray-100 dark:border-gray-700" />
 
-                          {/* Logout */}
+                          {/* Sair */}
                           <button 
                             onClick={() => { setIsProfileOpen(false); logout(); }}
                             className="w-full flex items-center gap-3 px-6 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors font-medium"
@@ -400,7 +400,7 @@ export default function Navbar({
             )}
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Botão Menu Mobile */}
           <button 
             className="md:hidden p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -410,7 +410,7 @@ export default function Navbar({
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Menu Mobile */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
@@ -425,7 +425,7 @@ export default function Navbar({
                 Início
               </Link>
 
-              {/* Mobile Client Links */}
+              {/* Links Mobile Cliente */}
               {effectiveRole === 'client' && (
                 <>
                   <Link to="/fazer-frete" className="flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white font-medium">
@@ -443,7 +443,7 @@ export default function Navbar({
                 </>
               )}
 
-              {/* Mobile Driver Links */}
+              {/* Links Mobile Motorista */}
               {effectiveRole === 'driver' && (
                 <>
                   <Link to="/buscar-fretes" className="flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white font-medium">
@@ -464,7 +464,7 @@ export default function Navbar({
                     Meu Perfil
                   </Link>
 
-                  {/* Mobile Mode Switcher - Only for Admin/Tester */}
+                  {/* Troca modo mobile */}
                   {(user.role === 'admin' || user.role === 'tester') && (
                     <button 
                       onClick={handleToggleRole}

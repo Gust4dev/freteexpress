@@ -76,7 +76,7 @@ export async function getRoute(req: Request, res: Response) {
   try {
     const { originCoords, destCoords } = routeSchema.parse(req.body);
 
-    // OSRM expects lon,lat
+    // OSRM espera lon,lat
     const originStr = `${originCoords[1]},${originCoords[0]}`;
     const destStr = `${destCoords[1]},${destCoords[0]}`;
 

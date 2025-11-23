@@ -1,12 +1,9 @@
-/**
- * Calcula a distância em linha reta (Haversine) entre duas coordenadas.
- * @returns Distância em KM.
- */
+// Calcula distância (Haversine) em KM.
 export function getHaversineDistance(
   [lat1, lon1]: [number, number],
   [lat2, lon2]: [number, number]
 ): number {
-  const R = 6371; // Raio da Terra em km
+  const R = 6371; // Raio da Terra (km)
   const dLat = deg2rad(lat2 - lat1);
   const dLon = deg2rad(lon2 - lon1);
 

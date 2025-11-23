@@ -38,16 +38,16 @@ export default function Home({ openAuth }: { openAuth: () => void }) {
   return (
     <div className="relative overflow-hidden bg-[#0B0E14] min-h-screen font-sans text-gray-300 selection:bg-blue-500/30">
       
-      {/* --- HERO SECTION --- */}
+      {/* Hero */}
       <section className="relative pt-20 pb-16 lg:pt-32 lg:pb-24 overflow-hidden">
-        {/* Background Gradients */}
+        {/* Gradientes de fundo */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-blue-500/20 blur-[120px] rounded-full pointer-events-none" />
         <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-purple-500/10 blur-[100px] rounded-full pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             
-            {/* Left Column: Content */}
+            {/* Conteúdo esquerda */}
             <motion.div 
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -104,16 +104,16 @@ export default function Home({ openAuth }: { openAuth: () => void }) {
               </div>
             </motion.div>
 
-            {/* Right Column: Visuals */}
+            {/* Visual direita */}
             <motion.div 
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 0.2 }}
               className="relative lg:h-[600px] flex items-center justify-center z-10"
             >
-              {/* Tablet Container */}
+              {/* Container Tablet */}
               <div className="relative w-full max-w-md bg-[#1A1F2E] rounded-[2rem] border border-gray-800 p-6 shadow-2xl transform rotate-[-5deg] hover:rotate-0 transition-transform duration-500 group">
-                {/* Header */}
+                {/* Cabeçalho */}
                 <div className="flex items-center justify-between mb-8">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-blue-500/20 rounded-lg">
@@ -129,7 +129,7 @@ export default function Home({ openAuth }: { openAuth: () => void }) {
                   </span>
                 </div>
 
-                {/* Timeline */}
+                {/* Linha do tempo */}
                 <div className="relative pl-4 border-l-2 border-gray-700 space-y-8 mb-8">
                   <div className="relative">
                     <div className="absolute -left-[21px] top-0 w-4 h-4 rounded-full bg-green-500 border-4 border-[#1A1F2E]" />
@@ -143,7 +143,7 @@ export default function Home({ openAuth }: { openAuth: () => void }) {
                   </div>
                 </div>
 
-                {/* Driver Info */}
+                {/* Info motorista */}
                 <div className="flex items-center gap-3 pt-6 border-t border-gray-800">
                   <div className="flex -space-x-2">
                     <div className="w-8 h-8 rounded-full bg-gray-600 border-2 border-[#1A1F2E]" />
@@ -153,7 +153,7 @@ export default function Home({ openAuth }: { openAuth: () => void }) {
                   <p className="text-xs text-gray-400 ml-auto">Motorista avaliado 5.0 ★</p>
                 </div>
 
-                {/* Floating Badge: 100% Seguro */}
+                {/* Badge Seguro */}
                 <motion.div 
                   animate={{ y: [0, -10, 0] }}
                   transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
@@ -169,7 +169,7 @@ export default function Home({ openAuth }: { openAuth: () => void }) {
                 </motion.div>
               </div>
 
-              {/* Floating Badge: Motorista a caminho (Bottom Left) */}
+              {/* Badge Motorista */}
                <motion.div 
                   animate={{ y: [0, 10, 0] }}
                   transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
@@ -190,7 +190,7 @@ export default function Home({ openAuth }: { openAuth: () => void }) {
         </div>
       </section>
 
-      {/* --- TRUSTED BY SECTION --- */}
+      {/* Empresas parceiras */}
       <section className="py-10 border-y border-white/5 bg-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <p className="text-center text-sm font-medium text-gray-500 mb-6 uppercase tracking-wider">Empresas que confiam na Frete Express</p>
@@ -202,7 +202,7 @@ export default function Home({ openAuth }: { openAuth: () => void }) {
         </div>
       </section>
 
-      {/* --- HOW IT WORKS SECTION --- */}
+      {/* Como funciona */}
       <section className="py-24 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -229,7 +229,7 @@ export default function Home({ openAuth }: { openAuth: () => void }) {
         </div>
       </section>
 
-      {/* --- SERVICES SECTION --- */}
+      {/* Serviços */}
       <section className="py-24 bg-[#1A1F2E]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -259,7 +259,7 @@ export default function Home({ openAuth }: { openAuth: () => void }) {
         </div>
       </section>
 
-      {/* --- FOR DRIVERS SECTION --- */}
+      {/* Para motoristas */}
       <section className="py-24 relative overflow-hidden">
         <div className="absolute inset-0 bg-blue-600/5" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
@@ -303,7 +303,7 @@ export default function Home({ openAuth }: { openAuth: () => void }) {
         </div>
       </section>
 
-      {/* --- TESTIMONIALS SECTION --- */}
+      {/* Depoimentos */}
       <section className="py-24 bg-[#1A1F2E]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -335,7 +335,7 @@ export default function Home({ openAuth }: { openAuth: () => void }) {
         </div>
       </section>
 
-      {/* --- FAQ SECTION --- */}
+      {/* FAQ */}
       <section className="py-24">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -354,7 +354,7 @@ export default function Home({ openAuth }: { openAuth: () => void }) {
         </div>
       </section>
 
-      {/* --- FOOTER --- */}
+      {/* Rodapé */}
       <footer className="bg-[#05080F] pt-20 pb-10 border-t border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-12 mb-16">

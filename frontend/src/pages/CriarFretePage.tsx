@@ -150,7 +150,7 @@ export default function CriarFretePage() {
 
   return (
     <div className="relative h-screen w-full overflow-hidden bg-gray-900">
-      {/* --- Full Screen Map Background --- */}
+      {/* Mapa de fundo */}
       <div className="absolute inset-0 z-0">
         <MapPicker
           initialPosition={currentMapPosition}
@@ -161,13 +161,13 @@ export default function CriarFretePage() {
         />
       </div>
 
-      {/* --- Gradient Fade Overlay (Top) --- */}
+      {/* Gradiente topo */}
       <div className="absolute top-0 left-0 w-full h-48 bg-gradient-to-b from-gray-900/90 via-gray-900/50 to-transparent z-10 pointer-events-none"></div>
 
-      {/* --- Content Overlay --- */}
+      {/* Conteúdo */}
       <div className="absolute inset-0 z-20 flex flex-col md:flex-row pointer-events-none">
         
-        {/* Left Side: Header & Instructions (Floating) */}
+        {/* Cabeçalho e instruções */}
         <div className="w-full md:w-1/2 p-6 md:p-12 flex flex-col justify-start pointer-events-none">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -188,9 +188,9 @@ export default function CriarFretePage() {
             </p>
           </motion.div>
 
-          {/* Location Cards (Floating) */}
+          {/* Cards de localização */}
           <div className="mt-8 space-y-4 max-w-md pointer-events-auto">
-             {/* Origin Button */}
+             {/* Botão Origem */}
              <button
                 type="button"
                 onClick={() => setCurrentSelection("origin")}
@@ -211,7 +211,7 @@ export default function CriarFretePage() {
                 </div>
               </button>
 
-              {/* Destination Button */}
+              {/* Botão Destino */}
               <button
                 type="button"
                 onClick={() => setCurrentSelection("dest")}
@@ -234,7 +234,7 @@ export default function CriarFretePage() {
           </div>
         </div>
 
-        {/* Right Side: Form (Glassmorphism) */}
+        {/* Formulário */}
         <div className="w-full md:w-1/2 flex items-end md:items-center justify-center md:justify-end p-4 md:p-8 pointer-events-none">
           <motion.div 
             initial={{ opacity: 0, x: 50 }}
@@ -300,7 +300,7 @@ export default function CriarFretePage() {
                 />
               </div>
 
-              {/* Calculation Section */}
+              {/* Cálculo */}
               <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
                 {!routeCalculated ? (
                   <button

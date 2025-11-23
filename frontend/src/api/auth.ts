@@ -8,7 +8,7 @@ export type UpdateUserDTO = {
 
 export async function login(email: string, password: string) {
   const res = await api.post("/auth/login", { email, password });
-  return res.data; // expect { token, user }
+  return res.data; // espera { token, user }
 }
 
 export async function register(payload: {

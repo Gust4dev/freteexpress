@@ -7,7 +7,7 @@ import { useAuth } from "../hooks/useAuth";
 import { login as apiLogin } from "../api/auth";
 
 export default function AuthCard({
-  mode, // kept for compatibility but ignored, always login
+  mode, // Mantido por compatibilidade, mas ignora. Sempre login.
   onClose,
 }: {
   mode: "login" | "register";
@@ -60,7 +60,7 @@ export default function AuthCard({
           className="relative w-full max-w-md bg-white dark:bg-gray-800 rounded-3xl shadow-2xl overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Header */}
+          {/* Cabeçalho */}
           <div className="relative h-32 bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center overflow-hidden">
             <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1557683316-973673baf926?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80')] bg-cover bg-center opacity-20 mix-blend-overlay" />
             <button
@@ -75,7 +75,7 @@ export default function AuthCard({
             </div>
           </div>
 
-          {/* Content */}
+          {/* Conteúdo */}
           <div className="p-8">
             {error && (
               <motion.div

@@ -82,7 +82,7 @@ export async function loginUsuario(req: Request, res: Response) {
 }
 
 export async function logoutUsuario(req: Request, res: Response) {
-  // Stateless JWT: Client just discards token. 
-  // Optional: Add token to blacklist in Redis/DB if needed in future.
+  // JWT é stateless, o cliente só joga fora o token.
+  // Se precisar, depois a gente implementa uma blacklist no Redis.
   return res.json({ ok: true });
 }

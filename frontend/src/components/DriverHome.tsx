@@ -5,7 +5,7 @@ import { Wallet, Star, MapPin, Navigation, ArrowRight, TrendingUp, Package, Chev
 export default function DriverHome() {
   const navigate = useNavigate();
 
-  // Mock data - in real app, fetch from API
+  // Dados fake, na real pega da API
   const stats = {
     earnings: 1250.00,
     rating: 4.9,
@@ -46,7 +46,7 @@ export default function DriverHome() {
         className="max-w-6xl mx-auto space-y-10"
       >
         
-        {/* Hero Section */}
+        {/* Destaque */}
         <div className="flex flex-col md:flex-row justify-between items-end gap-6">
           <motion.div variants={item} className="space-y-2">
             <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">
@@ -69,7 +69,7 @@ export default function DriverHome() {
           </motion.button>
         </div>
 
-        {/* Active Ride Card (if any) */}
+        {/* Corrida ativa (se tiver) */}
         {activeRide && (
           <motion.div
             variants={item}
@@ -91,7 +91,7 @@ export default function DriverHome() {
                 </div>
                 
                 <div className="space-y-6 relative">
-                  {/* Connecting Line */}
+                  {/* Linha conectora */}
                   <div className="absolute left-[5px] top-2 bottom-2 w-0.5 bg-gray-200 dark:bg-gray-700" />
 
                   <div className="flex items-start gap-4 relative z-10">
@@ -120,7 +120,7 @@ export default function DriverHome() {
                   </p>
                 </div>
                 <button 
-                  onClick={() => navigate("/app")} // Goes to the details/action page
+                  onClick={() => navigate("/app")} // Vai pros detalhes
                   className="mt-6 w-full md:w-auto px-6 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
                 >
                   Ver Detalhes <ArrowRight className="w-5 h-5" />
@@ -130,7 +130,7 @@ export default function DriverHome() {
           </motion.div>
         )}
 
-        {/* Stats Grid */}
+        {/* Grid de stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatsCard 
             title="Ganhos Semanais" 

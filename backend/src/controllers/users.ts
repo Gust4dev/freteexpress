@@ -13,21 +13,7 @@ const updateSchema = z.object({
 export async function uploadAvatar(req: Request, res: Response) {
   try {
     const id = req.userId;
-    if (!id) return res.status(401).json({ error: "unauthenticated" });
-
-    if (!req.file) {
-      return res.status(400).json({ error: "no_file_uploaded" });
-    }
-
-    // Construct URL (assuming local storage)
-    // In production, this would be an S3 URL or similar
-    const avatarUrl = `${process.env.API_URL || "http://localhost:3000"}/uploads/${req.file.filename}`;
-
-    const user = await User.findByIdAndUpdate(
-      id,
-      { avatarUrl },
-      { new: true }
-    ).select("-passwordHash").lean();
+    const user = await User.findById(id).select("-passwordHash").lean();
 
     return res.json(user);
   } catch (err) {

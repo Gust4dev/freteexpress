@@ -6,7 +6,7 @@ import { reverseGeocode, fetchRoutePath } from '../api/utils';
 import { MapPin } from 'lucide-react';
 import ReactDOMServer from 'react-dom/server';
 
-// --- Custom Icons ---
+// Ícones customizados
 const createCustomIcon = (color: string) => {
   return new Icon({
     iconUrl: `data:image/svg+xml;base64,${btoa(
@@ -26,7 +26,7 @@ const createCustomIcon = (color: string) => {
 const pickupIcon = createCustomIcon('#9333ea'); // Purple
 const dropoffIcon = createCustomIcon('#2563eb'); // Blue
 
-// --- Hook Isolation Pattern ---
+// Hook isolado
 type MapEventsHandlerProps = {
   onMapClick: (latlng: LatLng) => void;
 };
@@ -40,7 +40,7 @@ function MapEventsHandler({ onMapClick }: MapEventsHandlerProps) {
   return null;
 }
 
-// --- Main Component Props ---
+// Props
 type MapPickerProps = {
   initialPosition?: [number, number];
   originCoords?: [number, number];
@@ -70,7 +70,7 @@ export function MapPicker({ initialPosition, originCoords, destCoords, onLocatio
       fetchRoutePath(originCoords, destCoords)
         .then((data) => {
           if (data.geometry && data.geometry.coordinates) {
-            // OSRM returns [lon, lat], Leaflet needs [lat, lon]
+            // OSRM retorna [lon, lat], Leaflet quer [lat, lon]
             const positions = data.geometry.coordinates.map((c: number[]) => new LatLng(c[1], c[0]));
             setRoutePath(positions);
           }
@@ -86,9 +86,7 @@ export function MapPicker({ initialPosition, originCoords, destCoords, onLocatio
 
   const handleInteraction = async (latlng: LatLng) => {
     setIsGeocoding(true);
-    // Update local position state only if it matches the current mode's target
-    // But actually, onLocationSelect updates the parent state, which passes back originCoords/destCoords
-    // So we might not need local position state as much, but let's keep it for immediate feedback
+    // Atualiza estado local
     setPosition(latlng);
 
     try {
@@ -117,7 +115,7 @@ export function MapPicker({ initialPosition, originCoords, destCoords, onLocatio
 
   return (
     <div className={`relative overflow-hidden shadow-lg border border-gray-200 ${className || "h-[400px] w-full rounded-xl"}`}>
-      {/* Loading Indicator */}
+      {/* Carregando */}
       <AnimatePresence>
         {isGeocoding && (
           <motion.div
@@ -146,7 +144,7 @@ export function MapPicker({ initialPosition, originCoords, destCoords, onLocatio
           <Polyline positions={routePath} color="blue" weight={5} opacity={0.7} />
         )}
 
-        {/* Origin Marker (Purple) */}
+        {/* Marcador Origem (Roxo) */}
         {originCoords && (
           <Marker
             position={originCoords}
@@ -160,7 +158,7 @@ export function MapPicker({ initialPosition, originCoords, destCoords, onLocatio
           </Marker>
         )}
 
-        {/* Destination Marker (Blue) */}
+        {/* Marcador Destino (Azul) */}
         {destCoords && (
           <Marker
             position={destCoords}

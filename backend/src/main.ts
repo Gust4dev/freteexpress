@@ -8,7 +8,7 @@ import path from "path";
 import multer from "multer";
 import rateLimit from "express-rate-limit";
 
-// routes
+// Rotas
 import authRoutes from "./routes/auth";
 import usersRoutes from "./routes/users";
 import transportersRoutes from "./routes/transporter";
@@ -22,32 +22,14 @@ dotenv.config();
 
 const app = express();
 
-// security & parsing
+// Segurança e parsing
+// Segurança e parsing
 app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
 
-// Rate Limiting
-const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-});
-app.use(globalLimiter);
-
-const authLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 10, // Limit each IP to 10 login/register requests per hour
-  message: "Too many accounts created from this IP, please try again after an hour"
-});
-app.use("/auth", authLimiter);
-
-// Serve static files
-app.use("/uploads", express.static(path.resolve(__dirname, "..", "uploads")));
-
-// routes
+// Rotas
 app.use("/health", healthRoutes);
 app.use("/auth", authRoutes);
 app.use("/users", usersRoutes);
@@ -57,7 +39,7 @@ app.use("/ratings", ratingsRoutes);
 app.use("/utils", utilsRoutes);
 app.use("/wallet", walletRoutes);
 
-// simple centralized error handler (fallback)
+// Error handler centralizado
 app.use(
   (
     err: any,
@@ -77,7 +59,7 @@ app.use(
   }
 );
 
-// DB + server start
+// Inicia DB e Server
 const MONGO = process.env.MONGO_URI ?? "mongodb://localhost:27017/frete";
 const PORT = Number(process.env.PORT ?? 3000);
 

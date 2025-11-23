@@ -23,7 +23,7 @@ export default function RegisterPage() {
 
     try {
       await apiRegister({ name, email, password });
-      // Auto login after register
+      // Login automático após registro
       const { token, user } = await apiLogin(email, password);
       login(token, user, true);
       navigate("/");
@@ -34,11 +34,11 @@ export default function RegisterPage() {
       const validationErrors = responseData?.validation;
 
       if (validationErrors && Array.isArray(validationErrors) && validationErrors.length > 0) {
-        // Extract the first validation error
+        // Pega o primeiro erro de validação
         const firstError = validationErrors[0];
         const message = firstError.message;
         
-        // Translate common Zod messages
+        // Traduz mensagens do Zod
         if (message.includes("String must contain at least")) {
            setError(`O campo ${firstError.path[0]} deve ter no mínimo ${message.match(/\d+/)?.[0] || 6} caracteres.`);
         } else if (message.includes("Invalid email")) {
@@ -58,7 +58,7 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex bg-gray-50 dark:bg-gray-900">
-      {/* Left Side - Visuals */}
+      {/* Lado Esquerdo - Visual */}
       <div className="hidden lg:flex w-1/2 relative overflow-hidden bg-indigo-600 items-center justify-center">
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 to-purple-900 opacity-90" />
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1566576912902-48f5306c98f6?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80')] bg-cover bg-center mix-blend-overlay" />
@@ -92,12 +92,12 @@ export default function RegisterPage() {
           </motion.div>
         </div>
 
-        {/* Animated Circles */}
+        {/* Círculos Animados */}
         <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-purple-500 opacity-20 rounded-full blur-3xl animate-pulse" />
         <div className="absolute top-24 left-24 w-64 h-64 bg-indigo-400 opacity-20 rounded-full blur-3xl animate-pulse delay-700" />
       </div>
 
-      {/* Right Side - Form */}
+      {/* Lado Direito - Formulário */}
       <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 sm:px-12 lg:px-24 relative">
         <Link 
           to="/" 

@@ -55,7 +55,7 @@ export default function TrackingPage() {
       .then((data) => {
         setOrder(data);
         if (data.status === 'delivered' && user?.role === 'client' && data.clientId === user.id) {
-           // Check if already rated logic
+           // Lógica para verificar se já avaliou
         }
       })
       .catch((err) => {
@@ -139,7 +139,7 @@ export default function TrackingPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6 lg:p-10 font-sans">
       <div className="max-w-6xl mx-auto grid lg:grid-cols-3 gap-8">
         
-        {/* Left Column: Status & Details */}
+        {/* Coluna Esquerda: Status e Detalhes */}
         <div className="space-y-6">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
@@ -158,7 +158,7 @@ export default function TrackingPage() {
               </span>
             </div>
 
-            {/* Client Actions: Rate Driver */}
+            {/* Ações do Cliente: Avaliar Motorista */}
             {isClient && order.status === 'delivered' && (
               <div className="mb-6">
                 <button 
@@ -170,7 +170,7 @@ export default function TrackingPage() {
               </div>
             )}
 
-            {/* Driver Controls */}
+            {/* Controles do Motorista */}
             {isDriver && order.status !== 'delivered' && order.status !== 'cancelled' && (
               <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-2xl border border-blue-100 dark:border-blue-800">
                 <h3 className="font-bold text-blue-800 dark:text-blue-300 mb-3">Ações do Motorista</h3>
@@ -264,7 +264,7 @@ export default function TrackingPage() {
           )}
         </div>
 
-        {/* Right Column: Map */}
+        {/* Coluna Direita: Mapa */}
         <div className="lg:col-span-2 h-[500px] lg:h-auto bg-gray-200 dark:bg-gray-800 rounded-3xl overflow-hidden relative shadow-inner z-0">
           <MapContainer 
             center={originCoords} 
@@ -285,7 +285,7 @@ export default function TrackingPage() {
             <Polyline positions={[originCoords, destCoords]} color="blue" />
           </MapContainer>
           
-          {/* Overlay Info */}
+          {/* Informações Sobrepostas */}
           <div className="absolute top-6 left-6 right-6 flex justify-between items-start pointer-events-none z-[1000]">
             <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md px-4 py-2 rounded-xl shadow-lg pointer-events-auto">
               <p className="text-xs text-gray-500 dark:text-gray-400">Distância</p>

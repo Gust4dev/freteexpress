@@ -34,7 +34,7 @@ export default function LoginPage() {
          const firstError = validationErrors[0];
          const message = firstError.message;
 
-         // Translate common Zod messages
+         // Traduz mensagens do Zod
          if (message.includes("String must contain at least")) {
             setError(`A senha deve ter no mínimo ${message.match(/\d+/)?.[0] || 6} caracteres.`);
          } else if (message.includes("Invalid email")) {
@@ -54,7 +54,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex bg-gray-50 dark:bg-gray-900">
-      {/* Left Side - Visuals */}
+      {/* Lado esquerdo - Visual */}
       <div className="hidden lg:flex w-1/2 relative overflow-hidden bg-blue-600 items-center justify-center">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-900 opacity-90" />
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80')] bg-cover bg-center mix-blend-overlay" />
@@ -75,12 +75,12 @@ export default function LoginPage() {
           </motion.div>
         </div>
 
-        {/* Animated Circles */}
+        {/* Círculos animados */}
         <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-white opacity-10 rounded-full blur-3xl animate-pulse" />
         <div className="absolute -top-24 -right-24 w-96 h-96 bg-blue-400 opacity-20 rounded-full blur-3xl animate-pulse delay-1000" />
       </div>
 
-      {/* Right Side - Form */}
+      {/* Lado direito - Form */}
       <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 sm:px-12 lg:px-24 relative">
         <Link 
           to="/" 

@@ -3,11 +3,11 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-
 import L, { LatLng, Icon } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-// Fix for default marker icon
+// Corrige ícone padrão
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 
-// Configure default icon properly using the Leaflet instance
+// Configura ícone do Leaflet
 const DefaultIcon = new Icon({
     iconUrl: icon,
     shadowUrl: iconShadow,
@@ -17,7 +17,7 @@ const DefaultIcon = new Icon({
     shadowSize: [41, 41]
 });
 
-// Apply to L.Marker.prototype.options.icon instead of the React Component
+// Aplica globalmente
 L.Marker.prototype.options.icon = DefaultIcon;
 
 type MapDisplayProps = {

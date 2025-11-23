@@ -5,7 +5,7 @@ import { Plus, Package, Clock, MapPin, ArrowRight, Truck, ChevronRight, Search }
 export default function ClientHome() {
   const navigate = useNavigate();
 
-  // Mock data
+  // Dados fake
   const activeOrders = [
     { id: "PED-9921", status: "in_route", origin: "Minha Casa", destination: "Escritório", driver: "João Silva", eta: "15 min" },
     { id: "PED-9925", status: "created", origin: "Loja Centro", destination: "Casa da Mãe", driver: null, eta: "Aguardando" },
@@ -35,12 +35,12 @@ export default function ClientHome() {
         className="max-w-6xl mx-auto space-y-12"
       >
         
-        {/* Hero Section */}
+        {/* Destaque */}
         <motion.div 
           variants={item}
           className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-2xl p-8 md:p-12 group"
         >
-          {/* Animated Background Elements */}
+          {/* Fundo animado */}
           <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity duration-700">
             <Truck className="w-96 h-96 transform translate-x-20 -translate-y-20 rotate-[-10deg]" />
           </div>
@@ -95,7 +95,7 @@ export default function ClientHome() {
           </div>
         </motion.div>
 
-        {/* Active Orders Section */}
+        {/* Pedidos ativos */}
         <div className="space-y-6">
           <div className="flex items-center justify-between px-2">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
@@ -136,7 +136,7 @@ export default function ClientHome() {
                 </div>
 
                 <div className="space-y-4 mb-6 relative">
-                   {/* Connecting Line */}
+                   {/* Linha conectora */}
                    <div className="absolute left-[11px] top-2 bottom-2 w-0.5 bg-gray-100 dark:bg-gray-700" />
 
                   <div className="flex items-center gap-4 relative z-10">
@@ -159,7 +159,7 @@ export default function ClientHome() {
           </div>
         </div>
 
-        {/* Recent History Preview */}
+        {/* Histórico recente */}
         <motion.div 
           variants={item}
           className="bg-white dark:bg-gray-800 rounded-[2rem] p-8 shadow-sm border border-gray-100 dark:border-gray-700"

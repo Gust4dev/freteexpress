@@ -21,7 +21,7 @@ router.get(
   getTransportadorPorId
 );
 
-// rota para validar (apenas admin)
+// Validar (só admin)
 router.post("/:id/validar", authMiddleware(["admin"]), validarTransportador);
 
 export default router;

@@ -25,7 +25,7 @@ api.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err?.response?.status === 401) {
-      // optional: emit an event or handle global logout
+      // Opcional: emitir evento ou logout global
       sessionStorage.removeItem("fe_auth_token");
     }
     return Promise.reject(err);

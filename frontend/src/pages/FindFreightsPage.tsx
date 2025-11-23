@@ -30,7 +30,7 @@ export default function FindFreightsPage() {
     setLoading(true);
     listFretes()
       .then((res: any) => {
-        // Filter only created orders (available)
+        // Filtra só os disponíveis
         const available = res.data.filter((o: Order) => o.status === 'created');
         setFreights(available);
       })
@@ -76,7 +76,7 @@ export default function FindFreightsPage() {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6 h-[calc(100vh-250px)] min-h-[500px]">
-          {/* Map Section */}
+          {/* Mapa */}
           <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden relative">
              <MapDisplay 
                center={[-23.5505, -46.6333]}
@@ -89,7 +89,7 @@ export default function FindFreightsPage() {
                }))}
              />
              
-             {/* Floating Info when selected */}
+             {/* Info flutuante */}
              {selectedFreight && (
                <div className="absolute bottom-6 left-6 right-6 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md p-4 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 z-[400] flex justify-between items-center">
                  <div>
@@ -106,7 +106,7 @@ export default function FindFreightsPage() {
              )}
           </div>
 
-          {/* List Section */}
+          {/* Lista */}
           <div className="space-y-4 overflow-y-auto pr-2 custom-scrollbar">
             {freights.length === 0 ? (
               <p className="text-center text-gray-500 mt-10">Nenhum frete disponível no momento.</p>

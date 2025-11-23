@@ -101,7 +101,7 @@ export default function Dashboard() {
     statusMutation.mutate({ id: cancelModal.orderId, status: "cancelled" });
   };
 
-  // Mock data for charts and stats
+  // Dados fake pra gráficos
   const earningsHistory = [
     { date: "15/11", value: 120 },
     { date: "16/11", value: 250 },
@@ -136,7 +136,7 @@ export default function Dashboard() {
         className="max-w-7xl mx-auto space-y-8"
       >
         
-        {/* Header */}
+        {/* Cabeçalho */}
         <div className="flex flex-col md:flex-row justify-between items-end gap-4">
           <motion.div variants={item}>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Painel de Controle</h1>
@@ -173,10 +173,10 @@ export default function Dashboard() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* Left Column: Orders & Map */}
+          {/* Coluna esquerda: Pedidos e Mapa */}
           <div className="lg:col-span-2 space-y-8">
             
-            {/* Active Order / Map Section */}
+            {/* Mapa / Pedido ativo */}
             <motion.div variants={item} className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col h-[500px]">
               <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-white dark:bg-gray-800 z-10 relative">
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
@@ -202,7 +202,7 @@ export default function Dashboard() {
                   }))}
                 />
                 
-                {/* Overlay Card for Active Order */}
+                {/* Card flutuante do pedido */}
                 {activeOrder && (
                   <div className="absolute bottom-6 left-6 right-6 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md p-4 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 z-[400]">
                     <div className="flex items-center justify-between">
@@ -223,7 +223,7 @@ export default function Dashboard() {
               </div>
             </motion.div>
 
-            {/* Recent Orders List */}
+            {/* Lista de pedidos recentes */}
             <motion.div variants={item} className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
               <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
                 <Package className="w-5 h-5 text-purple-500" />
@@ -269,10 +269,10 @@ export default function Dashboard() {
 
           </div>
 
-          {/* Right Column: Stats & Charts */}
+          {/* Coluna direita: Stats */}
           <div className="space-y-8">
             
-            {/* Earnings Chart */}
+            {/* Gráfico de ganhos */}
             <motion.div variants={item} className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
               <div className="flex items-center justify-between mb-6">
                 <div>
@@ -305,7 +305,7 @@ export default function Dashboard() {
               </div>
             </motion.div>
 
-            {/* Ratings Card */}
+            {/* Card de avaliação */}
             <motion.div variants={item} className="bg-gradient-to-br from-yellow-400 to-orange-500 rounded-3xl shadow-lg p-6 text-white relative overflow-hidden">
               <div className="absolute top-0 right-0 p-4 opacity-20">
                 <Star className="w-32 h-32 rotate-12" />
@@ -340,7 +340,7 @@ export default function Dashboard() {
               </div>
             </motion.div>
 
-            {/* Achievements / Quick Stats */}
+            {/* Conquistas */}
             <motion.div variants={item} className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
               <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Conquistas</h2>
               <div className="space-y-4">
@@ -391,7 +391,7 @@ export default function Dashboard() {
   );
 }
 
-// Helper to render action buttons
+// Renderiza botões de ação
 function renderDriverButton(order: Order, acceptMutation: any, statusMutation: any, setCancelModal: any) {
   const isMutating = acceptMutation.isPending || statusMutation.isPending;
   const showCancel = order.status === "accepted" || order.status === "in_route";

@@ -10,14 +10,14 @@ import authMiddleware from "../middleware/auth";
 
 const router = Router();
 
-// cliente cria pedido
+// Cliente cria
 router.post("/", authMiddleware(["client"]), criarPedido);
 
-// listagens
+// Listar
 router.get("/", authMiddleware(), listarPedidos);
 router.get("/:id", authMiddleware(), getPedidoPorId);
 
-// ações do transportador
+// Motorista
 router.post("/:id/accept", authMiddleware(["driver"]), aceitarPedido);
 router.patch("/:id/status", authMiddleware(), atualizarStatusPedido);
 

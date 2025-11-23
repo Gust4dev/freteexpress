@@ -1,7 +1,7 @@
 ﻿/**
- * PROTÓTIPO: Cálculo do piso ANTT.
- * - Uso: validar se um preço proposto está >= piso obrigatório.
- * - Observação: substituir por integração oficial/atualização automática antes de produção.
+ * Protótipo do cálculo da ANTT.
+ * Valida se o preço tá acima do piso.
+ * Em prod tem que integrar com a API oficial.
  */
 
 export type VehicleType = "moto" | "carro" | "caminhao";
@@ -18,17 +18,8 @@ interface CalcResult {
 }
 
 /**
- * Calcula o piso mínimo (R$) para uma corrida/proposta.
- * Regra protótipo: base fixa + (rate * distanceKm).
- *
- * Exemplo (digit-by-digit demonstrativo):
- *   base = 6
- *   rate = 2.5 (carro)
- *   distanceKm = 10
- *
- *   multiplication = 2.5 * 10 = 25.0
- *   unrounded = base + multiplication = 6 + 25.0 = 31.0
- *   rounded = round(unrounded, 2) = 31.00
+ * Calcula o piso mínimo.
+ * Regra simples: base + (taxa * km).
  */
 export function calcPisoMinimo(
   distanceKm: number,
@@ -46,13 +37,11 @@ export function calcPisoMinimo(
 
   const rate = rateMap[vehicleType];
 
-  // cálculo passo-a-passo
-  // multiplication = rate * distanceKm
+  // Passo a passo
   const multiplication = Number((rate * distanceKm).toFixed(6));
-  // unrounded = base + multiplication
   const unrounded = Number((base + multiplication).toFixed(6));
 
-  // arredondar para 2 casas (centavos)
+  // Arredonda pra 2 casas
   const rounded = Math.round(unrounded * 100) / 100;
 
   return {
@@ -67,10 +56,7 @@ export function calcPisoMinimo(
   };
 }
 
-/**
- * Verifica se o preço proposto está >= piso calculado.
- * Retorna { ok, piso } para uso direto em controllers.
- */
+// Vê se o preço tá ok com o piso
 export function validatePriceAgainstPiso(
   price: number,
   distanceKm: number,
