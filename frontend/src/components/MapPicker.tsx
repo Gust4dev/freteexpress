@@ -114,7 +114,7 @@ export function MapPicker({ initialPosition, originCoords, destCoords, onLocatio
   );
 
   return (
-    <div className={`relative overflow-hidden shadow-lg border border-gray-200 ${className || "h-[400px] w-full rounded-xl"}`}>
+    <div className={`relative overflow-hidden shadow-lg border border-gray-200 z-0 ${className || "h-[400px] w-full rounded-xl"}`}>
       {/* Carregando */}
       <AnimatePresence>
         {isGeocoding && (

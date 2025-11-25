@@ -4,16 +4,27 @@ import { User } from "../models/user";
 import { Transporter } from "../models/transporters";
 
 const updateSchema = z.object({
-  name: z.string().min(2).optional().or(z.literal("")),
-  phone: z.string().min(8).optional().or(z.literal("")),
+  name: z.string().optional(),
+  phone: z.string().optional(),
   role: z.enum(["client", "driver"]).optional(),
-  avatarUrl: z.string().optional(),
 });
 
 export async function uploadAvatar(req: Request, res: Response) {
   try {
     const id = req.userId;
-    const user = await User.findById(id).select("-passwordHash").lean();
+    if (!req.file) {
+      return res.status(400).json({ error: "no_file_uploaded" });
+    }
+
+    const avatarUrl = `/uploads/${req.file.filename}`;
+
+    const user = await User.findByIdAndUpdate(
+      id,
+      { avatarUrl },
+      { new: true }
+    ).select("-passwordHash").lean();
+
+    if (!user) return res.status(404).json({ error: "not_found" });
 
     return res.json(user);
   } catch (err) {
@@ -25,11 +36,8 @@ export async function uploadAvatar(req: Request, res: Response) {
 export async function getMeuUsuario(req: Request, res: Response) {
   try {
     const id = req.userId;
-    if (!id) return res.status(401).json({ error: "unauthenticated" });
-
     const user = await User.findById(id).select("-passwordHash").lean();
     if (!user) return res.status(404).json({ error: "not_found" });
-
     return res.json(user);
   } catch (err) {
     console.error("getMeuUsuario error", err);

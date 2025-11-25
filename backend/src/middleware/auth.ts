@@ -81,3 +81,5 @@ export default function authMiddleware(allowedRoles?: Role | Role[]) {
     }
   };
 }
+
+export const isAuthenticated = authMiddleware();

@@ -40,9 +40,17 @@ export async function calculateDistance(req: Request, res: Response) {
   }
 }
 
+const geocodeCache = new Map<string, any>();
+const routeCache = new Map<string, any>();
+
 export async function reverseGeocode(req: Request, res: Response) {
   try {
     const { lat, lon } = reverseGeocodeSchema.parse(req.query);
+    const cacheKey = `${lat},${lon}`;
+
+    if (geocodeCache.has(cacheKey)) {
+      return res.json(geocodeCache.get(cacheKey));
+    }
 
     const data = await getAddressFromCoords(Number(lat), Number(lon));
     
@@ -60,10 +68,15 @@ export async function reverseGeocode(req: Request, res: Response) {
       formattedAddress = `${road}, ${state}`;
     }
 
-    return res.json({
+    const result = {
       address: formattedAddress,
       fullAddress: data.display_name,
-    });
+    };
+
+    geocodeCache.set(cacheKey, result);
+    if (geocodeCache.size > 1000) geocodeCache.clear();
+
+    return res.json(result);
 
   } catch (err: any) {
     if (err?.issues) return res.status(400).json({ validation: err.issues });
@@ -75,6 +88,11 @@ export async function reverseGeocode(req: Request, res: Response) {
 export async function getRoute(req: Request, res: Response) {
   try {
     const { originCoords, destCoords } = routeSchema.parse(req.body);
+    const cacheKey = `${originCoords.join(',')}-${destCoords.join(',')}`;
+
+    if (routeCache.has(cacheKey)) {
+      return res.json(routeCache.get(cacheKey));
+    }
 
     // OSRM espera lon,lat
     const originStr = `${originCoords[1]},${originCoords[0]}`;
@@ -89,12 +107,16 @@ export async function getRoute(req: Request, res: Response) {
     }
 
     const route = response.data.routes[0];
-
-    return res.json({
+    const result = {
       geometry: route.geometry,
       distance: route.distance,
       duration: route.duration,
-    });
+    };
+
+    routeCache.set(cacheKey, result);
+    if (routeCache.size > 500) routeCache.clear();
+
+    return res.json(result);
   } catch (err: any) {
     if (err?.issues) return res.status(400).json({ validation: err.issues });
     console.error("getRoute error", err);

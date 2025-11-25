@@ -17,17 +17,18 @@ import ratingsRoutes from "./routes/ratings";
 import healthRoutes from "./routes/health";
 import utilsRoutes from "./routes/utils";
 import walletRoutes from "./routes/wallet";
+import statsRoutes from "./routes/stats";
 
 dotenv.config();
 
 const app = express();
 
 // Segurança e parsing
-// Segurança e parsing
 app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
+app.use("/uploads", express.static(path.resolve(__dirname, "..", "..", "uploads")));
 
 // Rotas
 app.use("/health", healthRoutes);
@@ -38,6 +39,7 @@ app.use("/orders", ordersRoutes);
 app.use("/ratings", ratingsRoutes);
 app.use("/utils", utilsRoutes);
 app.use("/wallet", walletRoutes);
+app.use("/stats", statsRoutes);
 
 // Error handler centralizado
 app.use(

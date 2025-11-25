@@ -10,15 +10,15 @@ import authMiddleware from "../middleware/auth";
 
 const router = Router();
 
-// Cliente cria
-router.post("/", authMiddleware(["client"]), criarPedido);
+// Cliente cria (qualquer usuário autenticado)
+router.post("/", authMiddleware(), criarPedido);
 
 // Listar
 router.get("/", authMiddleware(), listarPedidos);
 router.get("/:id", authMiddleware(), getPedidoPorId);
 
-// Motorista
-router.post("/:id/accept", authMiddleware(["driver"]), aceitarPedido);
+// Motorista (qualquer usuário autenticado para testes)
+router.post("/:id/accept", authMiddleware(), aceitarPedido);
 router.patch("/:id/status", authMiddleware(), atualizarStatusPedido);
 
 export default router;

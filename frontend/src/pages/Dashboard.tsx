@@ -8,22 +8,19 @@ import {
   updateOrderStatus,
   OrderStatus,
 } from "../api/fretes";
+import { getDriverStats } from "../api/stats";
 import Spinner from "../components/Spinner";
 import CancelOrderModal from "../components/CancelOrderModal";
 import MapDisplay from "../components/MapDisplay";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { 
   MapPin, 
-  Navigation, 
   Package, 
-  DollarSign, 
   Star, 
   TrendingUp, 
-  Calendar, 
-  CheckCircle, 
-  AlertCircle,
-  ChevronRight,
-  Truck
+  Truck,
+  CheckCircle,
+  AlertCircle
 } from "lucide-react";
 
 type Order = {
@@ -48,12 +45,20 @@ export default function Dashboard() {
 
   const {
     data: ordersData,
-    isLoading,
-    error,
+    isLoading: loadingOrders,
   } = useQuery({
     queryKey: ["orders", user?.role],
     queryFn: () => listFretes(1, 100),
     enabled: !!user,
+  });
+
+  const {
+    data: stats,
+    isLoading: loadingStats
+  } = useQuery({
+    queryKey: ["driverStats", user?.id],
+    queryFn: getDriverStats,
+    enabled: !!user && user.role === 'driver',
   });
 
   const orders = ordersData?.data as Order[] | undefined;
@@ -76,6 +81,7 @@ export default function Dashboard() {
       updateOrderStatus(id, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
+      queryClient.invalidateQueries({ queryKey: ["driverStats"] });
       setCancelModal({ open: false, orderId: "" });
       setErrorMessage(null);
     },
@@ -86,33 +92,20 @@ export default function Dashboard() {
     },
   });
 
-  const handleDriverAction = (id: string, status: OrderStatus) => {
-    if (status === "created") {
-      acceptMutation.mutate(id);
-    } else if (status === "accepted") {
-      statusMutation.mutate({ id, status: "in_route" });
-    } else if (status === "in_route") {
-      statusMutation.mutate({ id, status: "delivered" });
-    }
-  };
-
   const handleConfirmCancel = (reason: string) => {
     console.log("Motivo do cancelamento:", reason);
     statusMutation.mutate({ id: cancelModal.orderId, status: "cancelled" });
   };
 
-  // Dados fake pra gráficos
-  const earningsHistory = [
-    { date: "15/11", value: 120 },
-    { date: "16/11", value: 250 },
-    { date: "17/11", value: 180 },
-    { date: "18/11", value: 320 },
-    { date: "19/11", value: 290 },
-    { date: "Hoje", value: 150 },
-  ];
-  const maxEarning = Math.max(...earningsHistory.map(e => e.value));
-
   const activeOrder = orders?.find(o => o.status === 'accepted' || o.status === 'in_route');
+
+  // Filtrar apenas pedidos com coordenadas válidas para o mapa
+  const mapMarkers = orders?.filter(o => o.origin.coordinates && o.destination.coordinates).map(o => ({
+    id: o._id,
+    position: o.origin.coordinates!, 
+    title: `Pedido #${o._id.slice(-4)}`,
+    description: o.status
+  })) || [];
 
   const container = {
     hidden: { opacity: 0 },
@@ -126,6 +119,8 @@ export default function Dashboard() {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0 }
   };
+
+  const isLoading = loadingOrders || (user?.role === 'driver' && loadingStats);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6 lg:p-10 font-sans transition-colors duration-500">
@@ -192,14 +187,12 @@ export default function Dashboard() {
               
               <div className="flex-1 relative bg-gray-100 dark:bg-gray-900">
                 <MapDisplay 
-                  center={activeOrder ? [-23.5505, -46.6333] : [-23.5505, -46.6333]} 
+                  center={activeOrder?.origin.coordinates || undefined} 
                   zoom={12}
-                  markers={orders?.map(o => ({
-                    id: o._id,
-                    position: [-23.5505 + (Math.random() - 0.5) * 0.1, -46.6333 + (Math.random() - 0.5) * 0.1], // Mock coords if missing
-                    title: `Pedido #${o._id.slice(-4)}`,
-                    description: o.status
-                  }))}
+                  markers={mapMarkers}
+                  route={activeOrder && activeOrder.origin.coordinates && activeOrder.destination.coordinates ? {
+                    path: [activeOrder.origin.coordinates, activeOrder.destination.coordinates]
+                  } : undefined}
                 />
                 
                 {/* Card flutuante do pedido */}
@@ -284,25 +277,34 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              <div className="h-48 flex items-end justify-between gap-2">
-                {earningsHistory.map((item, index) => (
-                  <div key={index} className="flex flex-col items-center gap-2 flex-1 group">
-                    <div className="relative w-full flex justify-center">
-                       <div 
-                         className="w-full max-w-[20px] bg-blue-100 dark:bg-blue-900/30 rounded-t-lg transition-all duration-500 group-hover:bg-blue-500 dark:group-hover:bg-blue-500 relative overflow-hidden"
-                         style={{ height: `${(item.value / maxEarning) * 150}px` }}
-                       >
-                         <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-500 dark:bg-blue-400 opacity-50" />
-                       </div>
-                       {/* Tooltip */}
-                       <div className="absolute -top-8 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-xs py-1 px-2 rounded pointer-events-none whitespace-nowrap z-10">
-                         R$ {item.value}
-                       </div>
-                    </div>
-                    <span className="text-[10px] text-gray-400 font-medium">{item.date}</span>
-                  </div>
-                ))}
-              </div>
+              {user?.role === 'driver' && stats ? (
+                <div className="h-48 flex items-end justify-between gap-2">
+                  {stats.earningsHistory.map((item, index) => {
+                     const maxEarning = Math.max(...stats.earningsHistory.map(e => e.value), 1); // Avoid div by 0
+                     return (
+                      <div key={index} className="flex flex-col items-center gap-2 flex-1 group">
+                        <div className="relative w-full flex justify-center">
+                           <div 
+                             className="w-full max-w-[20px] bg-blue-100 dark:bg-blue-900/30 rounded-t-lg transition-all duration-500 group-hover:bg-blue-500 dark:group-hover:bg-blue-500 relative overflow-hidden"
+                             style={{ height: `${(item.value / maxEarning) * 150}px` }}
+                           >
+                             <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-500 dark:bg-blue-400 opacity-50" />
+                           </div>
+                           {/* Tooltip */}
+                           <div className="absolute -top-8 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-xs py-1 px-2 rounded pointer-events-none whitespace-nowrap z-10">
+                             R$ {item.value.toFixed(2)}
+                           </div>
+                        </div>
+                        <span className="text-[10px] text-gray-400 font-medium">{item.date}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="h-48 flex items-center justify-center text-gray-400 text-sm">
+                  {user?.role === 'driver' ? "Carregando dados..." : "Disponível para motoristas"}
+                </div>
+              )}
             </motion.div>
 
             {/* Card de avaliação */}
@@ -316,11 +318,11 @@ export default function Dashboard() {
                 <p className="text-yellow-100 text-sm mb-6">Mantenha acima de 4.8 para ganhar bônus!</p>
                 
                 <div className="flex items-end gap-3">
-                  <span className="text-6xl font-extrabold">4.9</span>
+                  <span className="text-6xl font-extrabold">{stats?.rating?.toFixed(1) || "5.0"}</span>
                   <div className="flex flex-col mb-2">
                     <div className="flex gap-1">
                       {[1, 2, 3, 4, 5].map((s) => (
-                        <Star key={s} className="w-5 h-5 fill-white text-white" />
+                        <Star key={s} className={`w-5 h-5 ${s <= (stats?.rating || 5) ? 'fill-white text-white' : 'text-white/50'}`} />
                       ))}
                     </div>
                     <span className="text-sm font-medium text-yellow-100">Excelente</span>
@@ -329,12 +331,12 @@ export default function Dashboard() {
 
                 <div className="mt-6 pt-6 border-t border-white/20 flex justify-between text-sm font-medium">
                   <div>
-                    <p className="opacity-80">Total Avaliações</p>
-                    <p className="text-xl">142</p>
+                    <p className="opacity-80">Total Entregas</p>
+                    <p className="text-xl">{stats?.totalOrders || 0}</p>
                   </div>
                   <div className="text-right">
-                    <p className="opacity-80">Elogios</p>
-                    <p className="text-xl">98%</p>
+                    <p className="opacity-80">Ganhos (7d)</p>
+                    <p className="text-xl">R$ {stats?.totalEarnings7Days?.toFixed(0) || "0"}</p>
                   </div>
                 </div>
               </div>
@@ -344,35 +346,25 @@ export default function Dashboard() {
             <motion.div variants={item} className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
               <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Conquistas</h2>
               <div className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-full bg-yellow-100 text-yellow-600 dark:bg-yellow-900/20 dark:text-yellow-400">
-                    <Truck className="w-5 h-5" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex justify-between mb-1">
-                      <span className="text-sm font-bold text-gray-900 dark:text-white">Rei da Estrada</span>
-                      <span className="text-xs text-gray-500">85/100</span>
+                {stats?.achievements?.map((ach, idx) => (
+                  <div key={idx} className="flex items-center gap-4">
+                    <div className="p-3 rounded-full bg-yellow-100 text-yellow-600 dark:bg-yellow-900/20 dark:text-yellow-400">
+                      {ach.icon === 'truck' ? <Truck className="w-5 h-5" /> : <Star className="w-5 h-5" />}
                     </div>
-                    <div className="w-full h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-                      <div className="h-full bg-yellow-500 w-[85%]" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400">
-                    <CheckCircle className="w-5 h-5" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex justify-between mb-1">
-                      <span className="text-sm font-bold text-gray-900 dark:text-white">Pontualidade</span>
-                      <span className="text-xs text-gray-500">98%</span>
-                    </div>
-                    <div className="w-full h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-                      <div className="h-full bg-blue-500 w-[98%]" />
+                    <div className="flex-1">
+                      <div className="flex justify-between mb-1">
+                        <span className="text-sm font-bold text-gray-900 dark:text-white">{ach.title}</span>
+                        <span className="text-xs text-gray-500">{ach.progress.toFixed(0)}%</span>
+                      </div>
+                      <div className="w-full h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                        <div className="h-full bg-yellow-500" style={{ width: `${ach.progress}%` }} />
+                      </div>
                     </div>
                   </div>
-                </div>
+                ))}
+                {(!stats?.achievements || stats.achievements.length === 0) && (
+                   <p className="text-sm text-gray-500">Complete corridas para desbloquear conquistas!</p>
+                )}
               </div>
             </motion.div>
 

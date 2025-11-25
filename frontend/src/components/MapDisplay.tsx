@@ -1,6 +1,6 @@
-import { useEffect, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
-import L, { LatLng, Icon } from 'leaflet';
+import { useEffect, useMemo, useRef } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+import L, { LatLng, Icon, Map as LeafletMap } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 // Corrige ícone padrão
@@ -36,44 +36,58 @@ type MapDisplayProps = {
   className?: string;
 };
 
-function MapController({ center, zoom }: { center?: [number, number], zoom?: number }) {
-  const map = useMap();
-  useEffect(() => {
-    if (center) {
-      map.flyTo(center, zoom || 15);
-    }
-  }, [center, zoom, map]);
-  return null;
-}
-
 export default function MapDisplay({ 
-  center = [-23.5505, -46.6333], // Default SP
+  center, 
   zoom = 13, 
   markers = [], 
   route,
   className = "h-full w-full"
 }: MapDisplayProps) {
+  const mapRef = useRef<LeafletMap | null>(null);
 
   const routePath = useMemo(() => {
     if (!route?.path) return [];
     return route.path.map(p => new LatLng(p[0], p[1]));
   }, [route]);
 
+  // Efeito para ajustar o mapa aos marcadores ou rota
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    const bounds = new L.LatLngBounds([]);
+
+    // Adiciona marcadores aos limites
+    markers.forEach(m => bounds.extend(m.position));
+
+    // Adiciona rota aos limites
+    if (routePath.length > 0) {
+      routePath.forEach(p => bounds.extend(p));
+    }
+
+    if (bounds.isValid()) {
+      mapRef.current.fitBounds(bounds, { padding: [50, 50] });
+    } else if (center) {
+      mapRef.current.setView(center, zoom);
+    } else {
+      // Fallback padrão se nada for fornecido (ex: São Paulo)
+      mapRef.current.setView([-23.5505, -46.6333], zoom);
+    }
+  }, [markers, routePath, center, zoom]);
+
   return (
     <div className={`relative overflow-hidden rounded-xl shadow-inner ${className}`}>
       <MapContainer 
-        center={center} 
+        center={center || [-23.5505, -46.6333]} 
         zoom={zoom} 
         style={{ height: '100%', width: '100%' }}
         zoomControl={false}
+        ref={mapRef}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
         />
         
-        <MapController center={center} zoom={zoom} />
-
         {markers.map((marker) => (
           <Marker key={marker.id} position={marker.position}>
             {(marker.title || marker.description) && (

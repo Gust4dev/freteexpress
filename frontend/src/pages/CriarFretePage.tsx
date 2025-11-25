@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import Spinner from "../components/Spinner";
 import { createFrete, CreateFreteDTO } from "../api/fretes";
 import { calculateDistance } from "../api/utils";
@@ -161,20 +161,16 @@ export default function CriarFretePage() {
         />
       </div>
 
-      {/* Gradiente topo */}
-      <div className="absolute top-0 left-0 w-full h-48 bg-gradient-to-b from-gray-900/90 via-gray-900/50 to-transparent z-10 pointer-events-none"></div>
-
-      {/* Conteúdo */}
-      <div className="absolute inset-0 z-20 flex flex-col md:flex-row pointer-events-none">
-        
-        {/* Cabeçalho e instruções */}
-        <div className="w-full md:w-1/2 p-6 md:p-12 flex flex-col justify-start pointer-events-none">
+      {/* Overlay Content */}
+      <div className="absolute inset-0 z-10 flex flex-col md:flex-row pointer-events-none">
+        {/* Header & Instructions */}
+        <div className="w-full md:w-auto md:max-w-md p-6 md:p-12 flex flex-col justify-start pointer-events-none">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mt-4 md:mt-8 pointer-events-auto"
+            className="pointer-events-auto"
           >
-            <button 
+            <button
               onClick={() => navigate('/app')}
               className="text-white/80 hover:text-white flex items-center gap-2 mb-4 transition-colors"
             >
@@ -235,12 +231,12 @@ export default function CriarFretePage() {
         </div>
 
         {/* Formulário */}
-        <div className="w-full md:w-1/2 flex items-end md:items-center justify-center md:justify-end p-4 md:p-8 pointer-events-none">
+        <div className="absolute right-0 top-0 bottom-0 w-full md:w-[480px] flex items-center justify-center p-4 md:p-6 pointer-events-none z-20">
           <motion.div 
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-white/95 dark:bg-gray-900/90 backdrop-blur-xl p-6 md:p-8 rounded-3xl shadow-2xl border border-white/20 w-full max-w-md pointer-events-auto max-h-[85vh] overflow-y-auto custom-scrollbar"
+            className="bg-white/95 dark:bg-gray-900/90 backdrop-blur-xl p-6 rounded-3xl shadow-2xl border border-white/20 w-full max-h-[90vh] overflow-y-auto custom-scrollbar pointer-events-auto"
           >
             <form onSubmit={handleSubmit} className="space-y-5">
               <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2">

@@ -30,8 +30,14 @@ export default function FindFreightsPage() {
     setLoading(true);
     listFretes()
       .then((res: any) => {
-        // Filtra só os disponíveis
-        const available = res.data.filter((o: Order) => o.status === 'created');
+        // Filtra só os disponíveis e com coordenadas válidas
+        const available = res.data.filter((o: Order) => 
+          o.status === 'created' && 
+          o.origin.coords && 
+          o.origin.coords.length === 2 &&
+          o.destination.coords && 
+          o.destination.coords.length === 2
+        );
         setFreights(available);
       })
       .catch(console.error)
