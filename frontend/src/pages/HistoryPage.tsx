@@ -55,7 +55,7 @@ export default function HistoryPage() {
           <div className="text-center py-20">
             <p className="text-gray-500 dark:text-gray-400 text-lg">Nenhum pedido encontrado.</p>
             <button 
-              onClick={() => navigate("/app/new")}
+              onClick={() => navigate("/fazer-frete")}
               className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors"
             >
               Criar Novo Pedido
@@ -70,7 +70,7 @@ export default function HistoryPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
                 className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow cursor-pointer"
-                onClick={() => navigate(`/app/tracking/${order._id}`)}
+                onClick={() => navigate(`/rastreio/${order._id}`)}
               >
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                   

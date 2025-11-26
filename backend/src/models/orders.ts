@@ -4,6 +4,7 @@ export type VehicleType = "moto" | "carro" | "caminhao";
 export type OrderStatus =
   | "created"
   | "accepted"
+  | "arrived_pickup"
   | "in_route"
   | "delivered"
   | "cancelled";
@@ -17,6 +18,7 @@ export interface IOrder extends Document {
   vehicleType: VehicleType;
   price: number;
   pisoAntt: number;
+  confirmationCode?: string;
   status: OrderStatus;
   createdAt?: Date;
   updatedAt?: Date;
@@ -61,10 +63,11 @@ const OrderSchema = new Schema<IOrder>(
     },
     price: { type: Number, required: true, min: 0 },
     pisoAntt: { type: Number, required: true, min: 0 },
+    confirmationCode: { type: String, required: false, select: false }, // Código de 4 dígitos (select: false para segurança)
     status: {
       type: String,
       required: true,
-      enum: ["created", "accepted", "in_route", "delivered", "cancelled"],
+      enum: ["created", "accepted", "arrived_pickup", "in_route", "delivered", "cancelled"],
       default: "created",
       index: true,
     },

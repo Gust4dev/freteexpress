@@ -5,6 +5,7 @@ import Spinner from "../components/Spinner";
 import { createFrete, CreateFreteDTO } from "../api/fretes";
 import { calculateDistance } from "../api/utils";
 import { MapPicker } from "../components/MapPicker";
+import { X } from "lucide-react";
 
 type Coords = [number, number];
 type LocationInfo = {
@@ -134,11 +135,12 @@ export default function CriarFretePage() {
         distanceKm: distanceKm,
         price: offeredPrice,
         vehicleType: getVehicleType(),
+        ...formData, 
       };
 
-      await createFrete(payload);
+      const res = await createFrete(payload);
       setLoading(false);
-      navigate("/app");
+      navigate(`/order-confirmed/${res.data._id}`);
     } catch (err: any) {
       console.error("Falha ao criar frete:", err);
       setError("Falha ao criar frete. Verifique os dados e tente novamente.");
@@ -171,7 +173,7 @@ export default function CriarFretePage() {
             className="pointer-events-auto"
           >
             <button
-              onClick={() => navigate('/app')}
+              onClick={() => navigate("/")}
               className="text-white/80 hover:text-white flex items-center gap-2 mb-4 transition-colors"
             >
               ← Voltar

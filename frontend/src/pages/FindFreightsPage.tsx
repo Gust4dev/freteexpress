@@ -47,7 +47,7 @@ export default function FindFreightsPage() {
   async function handleAccept(id: string) {
     try {
       await acceptFrete(id);
-      navigate(`/app/tracking/${id}`);
+      navigate(`/rastreio/${id}`);
     } catch (err) {
       console.error("Failed to accept freight", err);
       alert("Erro ao aceitar corrida. Tente novamente.");

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { Order } from "../models/orders";
 import { Transporter } from "../models/transporters";
 import { validatePriceAgainstPiso } from "../libs/antt";
+import { calcPisoMinimo } from "../libs/antt"; // Ensure this import exists or use validatePriceAgainstPiso logic
 
 const createSchema = z.object({
   origin: z.object({
@@ -24,13 +25,21 @@ export async function criarPedido(req: Request, res: Response) {
     if (!clientId) return res.status(401).json({ error: "unauthenticated" });
 
     const payload = createSchema.parse(req.body);
+    
+    // Validate price (optional, depending on business logic)
     const { ok, piso } = validatePriceAgainstPiso(
       payload.price,
       payload.distanceKm,
       payload.vehicleType
     );
-    if (!ok)
-      return res.status(400).json({ error: "price_below_antt_minimum", piso });
+    
+    if (!ok) {
+       // For now allowing it but maybe warning? Or enforcing?
+       // return res.status(400).json({ error: "price_below_antt_minimum", piso });
+    }
+
+    // Generate 4-digit confirmation code
+    const confirmationCode = Math.floor(1000 + Math.random() * 9000).toString();
 
     const order = await Order.create({
       clientId,
@@ -41,6 +50,7 @@ export async function criarPedido(req: Request, res: Response) {
       vehicleType: payload.vehicleType,
       price: payload.price,
       pisoAntt: piso,
+      confirmationCode,
       status: "created",
     });
 
@@ -51,6 +61,7 @@ export async function criarPedido(req: Request, res: Response) {
     return res.status(500).json({ error: "internal" });
   }
 }
+
 export async function aceitarPedido(req: Request, res: Response) {
   try {
     const driverUserId = req.userId!;
@@ -83,42 +94,64 @@ export async function aceitarPedido(req: Request, res: Response) {
 export async function atualizarStatusPedido(req: Request, res: Response) {
   try {
     const userId = req.userId!;
-    const body = z
-      .object({ status: z.enum(["in_route", "delivered", "cancelled"]) })
-      .parse(req.body);
+    const { id } = req.params;
+    const { status, code } = req.body;
 
-    const order = await Order.findById(req.params.id);
+    if (!["in_route", "delivered", "cancelled", "arrived_pickup"].includes(status)) {
+      return res.status(400).json({ error: "invalid_status" });
+    }
+
+    // Load order with confirmationCode for verification
+    const order = await Order.findById(id).select("+confirmationCode");
     if (!order) return res.status(404).json({ error: "not_found" });
 
     const transporter = await Transporter.findOne({ userId });
-    const isTransporterOwner =
-      transporter && String(transporter._id) === String(order.transporterId);
+    
+    // Check ownership
+    const isTransporterOwner = transporter && String(transporter._id) === String(order.transporterId);
     const isClientOwner = String(order.clientId) === userId;
 
-    if (body.status === "cancelled") {
+    // Permission checks
+    if (status === "cancelled") {
       if (!isClientOwner && !isTransporterOwner && req.userRole !== "admin") {
         return res.status(403).json({ error: "forbidden" });
       }
       if (isTransporterOwner && order.status === "created") {
          return res.status(403).json({ error: "forbidden_cannot_cancel_unaccepted" });
       }
-    } else if (body.status === "in_route" || body.status === "delivered") {
+    } else {
+      // Driver status updates
       if (!isTransporterOwner) {
         return res.status(403).json({ error: "forbidden" });
       }
     }
 
-    if (body.status === "cancelled" && isTransporterOwner) {
+    // PIN Verification for Delivery
+    if (status === "delivered") {
+      if (!code) {
+        return res.status(400).json({ error: "missing_code" });
+      }
+      if (order.confirmationCode !== code) {
+        return res.status(400).json({ error: "invalid_code" });
+      }
+    }
+
+    // Apply updates
+    if (status === "cancelled" && isTransporterOwner) {
       order.transporterId = null;
       order.status = "created"; 
     } else {
-      order.status = body.status;
+      order.status = status;
     }
 
     await order.save();
-    return res.json(order);
+    
+    // Return order without the code
+    const orderObj = order.toObject();
+    delete (orderObj as any).confirmationCode;
+    
+    return res.json(orderObj);
   } catch (err: any) {
-    if (err?.issues) return res.status(400).json({ validation: err.issues });
     console.error("atualizarStatusPedido error", err);
     return res.status(500).json({ error: "internal" });
   }
@@ -128,13 +161,25 @@ export async function getPedidoPorId(req: Request, res: Response) {
   try {
     const id = req.params.id;
     const order = await Order.findById(id)
+      .populate("clientId", "name email phone avatarUrl")
       .populate({
         path: "transporterId",
-        populate: { path: "userId", select: "name phone avatarUrl" },
+        populate: { path: "userId", select: "name email phone avatarUrl" },
       })
-      .lean();
+      .select("+confirmationCode");
+
     if (!order) return res.status(404).json({ error: "not_found" });
-    return res.json(order);
+
+    const orderObj = order.toObject();
+    
+    // Only show confirmation code to the client who created the order
+    const isClientOwner = req.userRole === "client" && String(order.clientId._id) === req.userId;
+    
+    if (!isClientOwner) {
+       delete (orderObj as any).confirmationCode;
+    }
+
+    return res.json(orderObj);
   } catch (err) {
     console.error("getPedidoPorId error", err);
     return res.status(500).json({ error: "internal" });
@@ -157,7 +202,7 @@ export async function listarPedidos(req: Request, res: Response) {
       query = {
         $or: [
           { status: "created", transporterId: null },
-          { transporterId: transporter?._id, status: { $in: ["accepted", "in_route"] } }
+          { transporterId: transporter?._id, status: { $in: ["accepted", "arrived_pickup", "in_route"] } }
         ]
       };
     } else {

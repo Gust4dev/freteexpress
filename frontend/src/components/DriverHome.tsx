@@ -120,7 +120,7 @@ export default function DriverHome() {
                   </p>
                 </div>
                 <button 
-                  onClick={() => navigate("/app")} // Vai pros detalhes
+                  onClick={() => navigate(`/detalhes-corrida/${activeRide.id}`)} // Vai pros detalhes
                   className="mt-6 w-full md:w-auto px-6 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
                 >
                   Ver Detalhes <ArrowRight className="w-5 h-5" />

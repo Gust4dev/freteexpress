@@ -20,7 +20,8 @@ import {
   TrendingUp, 
   Truck,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  HelpCircle
 } from "lucide-react";
 
 type Order = {
@@ -140,18 +141,31 @@ export default function Dashboard() {
             </p>
           </motion.div>
           
-          {user?.role === "client" && (
+          <div className="flex gap-3">
             <motion.button
               variants={item}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => navigate("/fazer-frete")}
-              className="px-6 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-500/30 flex items-center gap-2 hover:bg-blue-700 transition-colors"
+              onClick={() => navigate("/suporte")}
+              className="px-6 py-3 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-bold rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
-              <Package className="w-5 h-5" />
-              Novo Pedido
+              <HelpCircle className="w-5 h-5" />
+              Suporte
             </motion.button>
-          )}
+
+            {user?.role === "client" && (
+              <motion.button
+                variants={item}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => navigate("/fazer-frete")}
+                className="px-6 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-500/30 flex items-center gap-2 hover:bg-blue-700 transition-colors"
+              >
+                <Package className="w-5 h-5" />
+                Novo Pedido
+              </motion.button>
+            )}
+          </div>
         </div>
 
         {errorMessage && (

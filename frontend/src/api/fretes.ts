@@ -12,6 +12,7 @@ export type CreateFreteDTO = {
 export type OrderStatus =
   | "created"
   | "accepted"
+  | "arrived_pickup"
   | "in_route"
   | "delivered"
   | "cancelled";
@@ -41,8 +42,8 @@ export async function acceptFrete(id: string) {
   return res.data;
 }
 
-export async function updateOrderStatus(id: string, status: OrderStatus) {
-  const res = await api.patch(`/orders/${id}/status`, { status });
+export async function updateOrderStatus(id: string, status: OrderStatus, code?: string) {
+  const res = await api.patch(`/orders/${id}/status`, { status, code });
   return res.data;
 }
 

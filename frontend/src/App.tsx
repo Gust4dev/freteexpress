@@ -16,6 +16,9 @@ const TrackingPage = lazy(() => import("./pages/TrackingPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const RegisterPage = lazy(() => import("./pages/RegisterPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
+const SupportPage = lazy(() => import("./pages/SupportPage"));
+const OrderConfirmedPage = lazy(() => import("./pages/OrderConfirmedPage"));
+const OrderDetailsPage = lazy(() => import("./pages/OrderDetailsPage"));
 
 export default function App() {
   const [authOpen, setAuthOpen] = useState<null | "login" | "register">(null);
@@ -33,7 +36,9 @@ export default function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/work" element={<WorkPage />} />
             <Route path="/fazer-frete" element={<CriarFretePage />} />
-            <Route path="/app" element={<Dashboard />} />
+            <Route path="/order-confirmed/:id" element={<OrderConfirmedPage />} />
+            <Route path="/suporte" element={<SupportPage />} />
+            <Route path="/detalhes-corrida/:id" element={<OrderDetailsPage />} />
             <Route path="/buscar-fretes" element={<FindFreightsPage />} />
             <Route path="/rastreio" element={<TrackingPage />} />
             <Route path="/app/tracking/:id" element={<TrackingPage />} />

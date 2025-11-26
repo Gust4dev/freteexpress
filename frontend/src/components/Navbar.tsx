@@ -138,6 +138,13 @@ export default function Navbar({
                   <Clock className="w-4 h-4" />
                   Histórico
                 </Link>
+                <Link 
+                  to="/suporte" 
+                  className={`flex items-center gap-2 text-sm font-medium transition-colors ${isActive('/suporte') ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'}`}
+                >
+                  <HelpCircle className="w-4 h-4" />
+                  Suporte
+                </Link>
               </>
             )}
 
@@ -157,6 +164,13 @@ export default function Navbar({
                 >
                   <Wallet className="w-4 h-4" />
                   Carteira
+                </Link>
+                <Link 
+                  to="/suporte" 
+                  className={`flex items-center gap-2 text-sm font-medium transition-colors ${isActive('/suporte') ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'}`}
+                >
+                  <HelpCircle className="w-4 h-4" />
+                  Suporte
                 </Link>
               </>
             )}
@@ -440,6 +454,10 @@ export default function Navbar({
                     <Clock className="w-5 h-5" />
                     Histórico
                   </Link>
+                  <Link to="/suporte" className="flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white font-medium">
+                    <HelpCircle className="w-5 h-5" />
+                    Suporte
+                  </Link>
                 </>
               )}
 
@@ -453,6 +471,10 @@ export default function Navbar({
                   <Link to="/carteira" className="flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white font-medium">
                     <Wallet className="w-5 h-5" />
                     Carteira
+                  </Link>
+                  <Link to="/suporte" className="flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white font-medium">
+                    <HelpCircle className="w-5 h-5" />
+                    Suporte
                   </Link>
                 </>
               )}
