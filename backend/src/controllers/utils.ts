@@ -3,6 +3,8 @@ import { z } from "zod";
 import axios from "axios";
 import { getHaversineDistance } from "../libs/geolocation";
 import { getAddressFromCoords } from "../services/nominatimClient";
+import { cacheService } from "../services/cache.service";
+import { queueService } from "../services/queue.service";
 
 const distanceSchema = z.object({
   originCoords: z.array(z.number()).length(2),
@@ -40,19 +42,18 @@ export async function calculateDistance(req: Request, res: Response) {
   }
 }
 
-const geocodeCache = new Map<string, any>();
-const routeCache = new Map<string, any>();
-
 export async function reverseGeocode(req: Request, res: Response) {
   try {
     const { lat, lon } = reverseGeocodeSchema.parse(req.query);
-    const cacheKey = `${lat},${lon}`;
+    const cacheKey = `geo:${lat},${lon}`;
 
-    if (geocodeCache.has(cacheKey)) {
-      return res.json(geocodeCache.get(cacheKey));
+    const cached = cacheService.get(cacheKey);
+    if (cached) {
+      return res.json(cached);
     }
 
-    const data = await getAddressFromCoords(Number(lat), Number(lon));
+    // Throttled call
+    const data = await queueService.schedule(() => getAddressFromCoords(Number(lat), Number(lon)));
     
     const address = data.address;
     const city = address.city || address.town || address.village || "";
@@ -73,8 +74,8 @@ export async function reverseGeocode(req: Request, res: Response) {
       fullAddress: data.display_name,
     };
 
-    geocodeCache.set(cacheKey, result);
-    if (geocodeCache.size > 1000) geocodeCache.clear();
+    // TTL: 1 hour (3600 seconds)
+    cacheService.set(cacheKey, result, 3600);
 
     return res.json(result);
 
@@ -88,19 +89,21 @@ export async function reverseGeocode(req: Request, res: Response) {
 export async function getRoute(req: Request, res: Response) {
   try {
     const { originCoords, destCoords } = routeSchema.parse(req.body);
-    const cacheKey = `${originCoords.join(',')}-${destCoords.join(',')}`;
+    const cacheKey = `route:${originCoords.join(',')}-${destCoords.join(',')}`;
 
-    if (routeCache.has(cacheKey)) {
-      return res.json(routeCache.get(cacheKey));
+    const cached = cacheService.get(cacheKey);
+    if (cached) {
+      return res.json(cached);
     }
 
-    // OSRM espera lon,lat
+    // OSRM expects lon,lat
     const originStr = `${originCoords[1]},${originCoords[0]}`;
     const destStr = `${destCoords[1]},${destCoords[0]}`;
 
     const url = `http://router.project-osrm.org/route/v1/driving/${originStr};${destStr}?overview=full&geometries=geojson`;
 
-    const response = await axios.get(url);
+    // Throttled call
+    const response = await queueService.schedule(() => axios.get(url));
 
     if (response.data.code !== "Ok") {
       throw new Error("OSRM API Error");
@@ -113,8 +116,8 @@ export async function getRoute(req: Request, res: Response) {
       duration: route.duration,
     };
 
-    routeCache.set(cacheKey, result);
-    if (routeCache.size > 500) routeCache.clear();
+    // TTL: 10 minutes (600 seconds)
+    cacheService.set(cacheKey, result, 600);
 
     return res.json(result);
   } catch (err: any) {

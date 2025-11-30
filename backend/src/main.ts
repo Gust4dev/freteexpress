@@ -6,7 +6,7 @@ import cors from "cors";
 import morgan from "morgan";
 import path from "path";
 import multer from "multer";
-import rateLimit from "express-rate-limit";
+import { globalLimiter } from "./middleware/rateLimiter";
 
 // Rotas
 import authRoutes from "./routes/auth";
@@ -24,8 +24,12 @@ dotenv.config();
 const app = express();
 
 // Middlewares
+app.set('trust proxy', 1); // Required for rate limiting behind proxies
+app.use(globalLimiter);
 app.use(helmet({ crossOriginResourcePolicy: false }));
-app.use(cors());
+app.use(cors({
+  exposedHeaders: ['RateLimit-Limit', 'RateLimit-Remaining', 'RateLimit-Reset', 'Retry-After']
+}));
 app.use(express.json());
 app.use(morgan("dev"));
 app.use("/uploads", express.static(path.resolve(__dirname, "..", "..", "uploads")));

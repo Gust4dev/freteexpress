@@ -15,6 +15,8 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
+  const [showResetPassword, setShowResetPassword] = useState(false);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
@@ -27,6 +29,37 @@ export default function LoginPage() {
     } catch (err: any) {
       console.error(err);
       const responseData = err?.response?.data;
+      const status = err?.response?.status;
+      const headers = err?.response?.headers;
+      
+      // Handle Rate Limit (429)
+      if (status === 429) {
+        setError(responseData?.message || "Muitas tentativas. Tente novamente mais tarde.");
+        setShowResetPassword(true); // Show reset button if they are blocked
+        return;
+      }
+
+      // Handle Remaining Attempts (from headers)
+      const remainingAttempts = headers?.["ratelimit-remaining"];
+      if (remainingAttempts !== undefined) {
+        const remaining = parseInt(remainingAttempts, 10);
+        // User said: "erre 3 vezes contagem inicia" (mistake 3 times count starts) -> implies showing count/reset after 3 fails?
+        // Or "Allow 5, if err 3 times...". 
+        // Let's show count if remaining < 3 (meaning 3, 4, 5 used).
+        if (remaining < 3) {
+           setShowResetPassword(true);
+        }
+        
+        if (status === 401 || responseData?.error === "invalid_credentials") {
+           // Mensagem mais clara e direta
+           setError(`Senha incorreta. Você tem mais ${remaining} tentativa(s).`);
+           if (remaining === 0) {
+             setError("Conta bloqueada temporariamente por excesso de tentativas.");
+           }
+           return;
+        }
+      }
+
       const errorMsg = responseData?.error;
       const validationErrors = responseData?.validation;
 
@@ -45,7 +78,8 @@ export default function LoginPage() {
       } else if (errorMsg === "invalid_credentials") {
         setError("E-mail ou senha incorretos.");
       } else {
-        setError("Falha ao conectar com o servidor.");
+        // Fallback for other errors
+        setError(responseData?.message || "Falha ao conectar com o servidor.");
       }
     } finally {
       setLoading(false);
@@ -134,7 +168,6 @@ export default function LoginPage() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Senha</label>
-                <a href="#" className="text-sm text-blue-600 hover:underline">Esqueceu a senha?</a>
               </div>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -147,6 +180,14 @@ export default function LoginPage() {
                   placeholder="••••••••"
                 />
               </div>
+              
+              {showResetPassword && (
+                <div className="flex justify-end mt-1">
+                  <a href="#" className="text-sm font-semibold text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 animate-pulse flex items-center gap-1">
+                    Problemas para entrar? Redefinir senha
+                  </a>
+                </div>
+              )}
             </div>
 
             <button
