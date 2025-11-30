@@ -4,7 +4,6 @@ import { Order } from "../models/orders";
 import { Transporter } from "../models/transporters";
 import { validatePriceAgainstPiso } from "../libs/antt";
 
-
 const createSchema = z.object({
   origin: z.object({
     address: z.string().min(3),
@@ -22,7 +21,7 @@ const createSchema = z.object({
 export async function criarPedido(req: Request, res: Response) {
   try {
     const clientId = req.userId;
-    if (!clientId) return res.status(401).json({ error: "unauthenticated" });
+    if (!clientId) return res.status(401).json({ error: "unauthenticated", message: "Você precisa estar logado." });
 
     const payload = createSchema.parse(req.body);
     
@@ -56,9 +55,9 @@ export async function criarPedido(req: Request, res: Response) {
 
     return res.status(201).json(order);
   } catch (err: any) {
-    if (err?.issues) return res.status(400).json({ validation: err.issues });
+    if (err?.issues) return res.status(400).json({ error: "validation_error", message: "Dados inválidos.", details: err.issues });
     console.error("criarPedido error", err);
-    return res.status(500).json({ error: "internal" });
+    return res.status(500).json({ error: "internal_error", message: "Erro ao criar pedido." });
   }
 }
 
@@ -68,17 +67,17 @@ export async function aceitarPedido(req: Request, res: Response) {
     const transporter = await Transporter.findOne({ userId: driverUserId });
     
     if (!transporter) {
-      return res.status(403).json({ error: "driver_not_registered" });
+      return res.status(403).json({ error: "driver_not_registered", message: "Motorista não registrado." });
     }
 
     if (!transporter.validated) {
-      return res.status(403).json({ error: "driver_not_validated" });
+      return res.status(403).json({ error: "driver_not_validated", message: "Aguardando validação do cadastro." });
     }
 
     const order = await Order.findById(req.params.id);
-    if (!order) return res.status(404).json({ error: "not_found" });
+    if (!order) return res.status(404).json({ error: "not_found", message: "Pedido não encontrado." });
     if (order.transporterId)
-      return res.status(409).json({ error: "already_taken" });
+      return res.status(409).json({ error: "already_taken", message: "Este pedido já foi aceito." });
 
     order.transporterId = transporter._id;
     order.status = "accepted";
@@ -87,7 +86,7 @@ export async function aceitarPedido(req: Request, res: Response) {
     return res.json(order);
   } catch (err) {
     console.error("aceitarPedido error", err);
-    return res.status(500).json({ error: "internal" });
+    return res.status(500).json({ error: "internal_error", message: "Erro ao aceitar pedido." });
   }
 }
 
@@ -98,12 +97,12 @@ export async function atualizarStatusPedido(req: Request, res: Response) {
     const { status, code } = req.body;
 
     if (!["in_route", "delivered", "cancelled", "arrived_pickup"].includes(status)) {
-      return res.status(400).json({ error: "invalid_status" });
+      return res.status(400).json({ error: "invalid_status", message: "Status inválido." });
     }
 
     // Load order with confirmationCode for verification
     const order = await Order.findById(id).select("+confirmationCode");
-    if (!order) return res.status(404).json({ error: "not_found" });
+    if (!order) return res.status(404).json({ error: "not_found", message: "Pedido não encontrado." });
 
     const transporter = await Transporter.findOne({ userId });
     
@@ -114,25 +113,25 @@ export async function atualizarStatusPedido(req: Request, res: Response) {
     // Verificações de segurança
     if (status === "cancelled") {
       if (!isClientOwner && !isTransporterOwner && req.userRole !== "admin") {
-        return res.status(403).json({ error: "forbidden" });
+        return res.status(403).json({ error: "forbidden", message: "Acesso negado." });
       }
       if (isTransporterOwner && order.status === "created") {
-         return res.status(403).json({ error: "forbidden_cannot_cancel_unaccepted" });
+         return res.status(403).json({ error: "forbidden_cannot_cancel_unaccepted", message: "Não é possível cancelar um pedido não aceito." });
       }
     } else {
       // Atualizações do motorista
       if (!isTransporterOwner) {
-        return res.status(403).json({ error: "forbidden" });
+        return res.status(403).json({ error: "forbidden", message: "Apenas o motorista responsável pode atualizar." });
       }
     }
 
     // Verificação do PIN
     if (status === "delivered") {
       if (!code) {
-        return res.status(400).json({ error: "missing_code" });
+        return res.status(400).json({ error: "missing_code", message: "Código de confirmação obrigatório." });
       }
       if (order.confirmationCode !== code) {
-        return res.status(400).json({ error: "invalid_code" });
+        return res.status(400).json({ error: "invalid_code", message: "Código de confirmação incorreto." });
       }
     }
 
@@ -153,7 +152,7 @@ export async function atualizarStatusPedido(req: Request, res: Response) {
     return res.json(orderObj);
   } catch (err: any) {
     console.error("atualizarStatusPedido error", err);
-    return res.status(500).json({ error: "internal" });
+    return res.status(500).json({ error: "internal_error", message: "Erro ao atualizar status." });
   }
 }
 
@@ -168,7 +167,7 @@ export async function getPedidoPorId(req: Request, res: Response) {
       })
       .select("+confirmationCode");
 
-    if (!order) return res.status(404).json({ error: "not_found" });
+    if (!order) return res.status(404).json({ error: "not_found", message: "Pedido não encontrado." });
 
     const orderObj = order.toObject();
     
@@ -182,7 +181,7 @@ export async function getPedidoPorId(req: Request, res: Response) {
     return res.json(orderObj);
   } catch (err) {
     console.error("getPedidoPorId error", err);
-    return res.status(500).json({ error: "internal" });
+    return res.status(500).json({ error: "internal_error", message: "Erro ao buscar pedido." });
   }
 }
 
@@ -225,6 +224,6 @@ export async function listarPedidos(req: Request, res: Response) {
     });
   } catch (err) {
     console.error("listarPedidos error", err);
-    return res.status(500).json({ error: "internal" });
+    return res.status(500).json({ error: "internal_error", message: "Erro ao listar pedidos." });
   }
 }

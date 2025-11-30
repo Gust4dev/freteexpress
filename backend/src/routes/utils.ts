@@ -5,8 +5,8 @@ import { apiLimiter } from "../middleware/rateLimiter";
 
 const router = Router();
 
-router.post("/calculate-distance", apiLimiter, calculateDistance);
-router.post("/route", apiLimiter, getRoute);
-router.get("/reverse-geocode", apiLimiter, reverseGeocode);
+router.post("/calculate-distance", authMiddleware, apiLimiter, calculateDistance);
+router.post("/route", authMiddleware, apiLimiter, getRoute);
+router.get("/reverse-geocode", apiLimiter, reverseGeocode); // Reverse geocode can remain public or protected depending on usage
 
 export default router;

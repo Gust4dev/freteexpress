@@ -36,9 +36,9 @@ export async function calculateDistance(req: Request, res: Response) {
       destCoords,
     });
   } catch (err: any) {
-    if (err?.issues) return res.status(400).json({ validation: err.issues });
+    if (err?.issues) return res.status(400).json({ error: "validation_error", message: "Dados inválidos.", details: err.issues });
     console.error("calculateDistance error", err);
-    return res.status(500).json({ error: "internal" });
+    return res.status(500).json({ error: "internal_error", message: "Erro ao calcular distância." });
   }
 }
 
@@ -80,9 +80,9 @@ export async function reverseGeocode(req: Request, res: Response) {
     return res.json(result);
 
   } catch (err: any) {
-    if (err?.issues) return res.status(400).json({ validation: err.issues });
+    if (err?.issues) return res.status(400).json({ error: "validation_error", message: "Dados inválidos.", details: err.issues });
     console.error("reverseGeocode error", err);
-    return res.status(500).json({ error: err.message || "internal" });
+    return res.status(500).json({ error: "internal_error", message: "Erro ao buscar endereço." });
   }
 }
 
@@ -121,8 +121,8 @@ export async function getRoute(req: Request, res: Response) {
 
     return res.json(result);
   } catch (err: any) {
-    if (err?.issues) return res.status(400).json({ validation: err.issues });
+    if (err?.issues) return res.status(400).json({ error: "validation_error", message: "Dados inválidos.", details: err.issues });
     console.error("getRoute error", err);
-    return res.status(500).json({ error: "Failed to fetch route" });
+    return res.status(500).json({ error: "route_error", message: "Falha ao calcular rota." });
   }
 }

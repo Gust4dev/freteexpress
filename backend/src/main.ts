@@ -23,6 +23,9 @@ dotenv.config();
 
 const app = express();
 
+const MONGO = process.env.MONGO_URI || "mongodb://localhost:27017/freteexpress";
+const PORT = process.env.PORT || 3000;
+
 // Middlewares
 app.set('trust proxy', 1); // Required for rate limiting behind proxies
 app.use(globalLimiter);
@@ -45,7 +48,7 @@ app.use("/utils", utilsRoutes);
 app.use("/wallet", walletRoutes);
 app.use("/stats", statsRoutes);
 
-// Tratamento de erros
+// Global Error Handler
 app.use(
   (
     err: any,
@@ -56,18 +59,16 @@ app.use(
     console.error("Unhandled error:", err);
 
     if (err instanceof multer.MulterError) {
-      return res.status(400).json({ error: err.code, message: err.message });
+      return res.status(400).json({ error: "upload_error", message: err.message });
     }
 
     const status = err?.statusCode ?? 500;
-    const message = err?.message ?? "internal_server_error";
-    res.status(status).json({ error: message });
+    const code = err?.code ?? "internal_error";
+    const message = err?.message ?? "Ocorreu um erro inesperado.";
+
+    res.status(status).json({ error: code, message });
   }
 );
-
-// Inicialização
-const MONGO = process.env.MONGO_URI ?? "mongodb://localhost:27017/frete";
-const PORT = Number(process.env.PORT ?? 3000);
 
 mongoose.set("strictQuery", false);
 

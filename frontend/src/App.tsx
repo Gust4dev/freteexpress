@@ -1,9 +1,11 @@
-import { useState, Suspense, lazy } from "react";
+import { useState, Suspense, lazy, useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import AuthCard from "./components/AuthCard";
 import { useAuth } from "./hooks/useAuth";
 import GlobalLoader from "./components/GlobalLoader";
+import { Toaster, toast } from "react-hot-toast";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const Home = lazy(() => import("./pages/Home"));
 const WorkPage = lazy(() => import("./pages/WorkPage"));
@@ -24,28 +26,54 @@ export default function App() {
   const [authOpen, setAuthOpen] = useState<null | "login" | "register">(null);
   const { darkMode, toggleTheme } = useAuth();
 
+  useEffect(() => {
+    // Verifica se houve expiração de sessão
+    if (localStorage.getItem("session_expired")) {
+      localStorage.removeItem("session_expired");
+      // Pequeno delay para garantir que o Toaster montou
+      setTimeout(() => {
+        toast.error("Sessão expirada. Faça login novamente.", { id: "session-expired" });
+      }, 100);
+    }
+  }, []);
+
   return (
     <BrowserRouter>
       <div className="min-h-screen bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100 transition-colors">
         <Navbar darkMode={darkMode} toggleTheme={toggleTheme} />
+        <Toaster
+          position="top-center"
+          reverseOrder={false}
+          containerStyle={{
+            zIndex: 99999,
+          }}
+        />
 
         <Suspense fallback={<GlobalLoader />}>
           <Routes>
             <Route path="/" element={<><Home openAuth={() => setAuthOpen("login")} /></>} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
-            <Route path="/work" element={<WorkPage />} />
-            <Route path="/fazer-frete" element={<CriarFretePage />} />
-            <Route path="/order-confirmed/:id" element={<OrderConfirmedPage />} />
-            <Route path="/suporte" element={<SupportPage />} />
-            <Route path="/detalhes-corrida/:id" element={<OrderDetailsPage />} />
+            
+            {/* Rotas Protegidas */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/work" element={<WorkPage />} />
+              <Route path="/fazer-frete" element={<CriarFretePage />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/wallet" element={<WalletPage />} />
+              <Route path="/history" element={<HistoryPage />} />
+              <Route path="/find-freights" element={<FindFreightsPage />} />
+              <Route path="/rastreio/:id" element={<TrackingPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/suporte" element={<SupportPage />} />
+              <Route path="/order-confirmed/:id" element={<OrderConfirmedPage />} />
+              <Route path="/detalhes-corrida/:id" element={<OrderDetailsPage />} />
+            </Route>
+            
+            {/* Rotas Públicas Adicionais */}
             <Route path="/buscar-fretes" element={<FindFreightsPage />} />
             <Route path="/rastreio" element={<TrackingPage />} />
             <Route path="/app/tracking/:id" element={<TrackingPage />} />
-            <Route path="/rastreio/:id" element={<TrackingPage />} />
-            <Route path="/carteira" element={<WalletPage />} />
-            <Route path="/historico" element={<HistoryPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
           </Routes>
         </Suspense>
 

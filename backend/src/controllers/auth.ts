@@ -21,15 +21,15 @@ export async function loginUsuario(req: Request, res: Response) {
     const { email, password } = loginSchema.parse(req.body);
 
     const user = await User.findOne({ email }).lean();
-    if (!user) return res.status(401).json({ error: "invalid_credentials" });
+    if (!user) return res.status(401).json({ error: "invalid_credentials", message: "E-mail ou senha incorretos." });
 
     const valid = await bcrypt.compare(password, user.passwordHash);
-    if (!valid) return res.status(401).json({ error: "invalid_credentials" });
+    if (!valid) return res.status(401).json({ error: "invalid_credentials", message: "E-mail ou senha incorretos." });
 
     const secret = process.env.JWT_SECRET;
     if (!secret) {
       console.error("JWT_SECRET not set");
-      return res.status(500).json({ error: "internal" });
+      return res.status(500).json({ error: "internal_error", message: "Erro interno de configuração." });
     }
 
     const token = jwt.sign(
@@ -48,9 +48,9 @@ export async function loginUsuario(req: Request, res: Response) {
       },
     });
   } catch (err: any) {
-    if (err?.issues) return res.status(400).json({ validation: err.issues });
+    if (err?.issues) return res.status(400).json({ error: "validation_error", message: "Dados inválidos.", details: err.issues });
     console.error("loginUsuario error", err);
-    return res.status(500).json({ error: "internal" });
+    return res.status(500).json({ error: "internal_error", message: "Erro ao processar login." });
   }
 }
 
@@ -64,7 +64,7 @@ export async function criarUsuario(req: Request, res: Response) {
     const { name, email, password, role } = signupSchema.parse(req.body);
 
     const exists = await User.findOne({ email }).lean();
-    if (exists) return res.status(409).json({ error: "email_exists" });
+    if (exists) return res.status(409).json({ error: "email_exists", message: "Este e-mail já está cadastrado." });
 
     const saltRounds = Number(process.env.BCRYPT_SALT_ROUNDS ?? 12);
     const passwordHash = await bcrypt.hash(password, saltRounds);
@@ -90,8 +90,8 @@ export async function criarUsuario(req: Request, res: Response) {
         role: user.role,
       });
   } catch (err: any) {
-    if (err?.issues) return res.status(400).json({ validation: err.issues });
+    if (err?.issues) return res.status(400).json({ error: "validation_error", message: "Dados inválidos.", details: err.issues });
     console.error("criarUsuario error", err);
-    return res.status(500).json({ error: "internal" });
+    return res.status(500).json({ error: "internal_error", message: "Erro ao criar usuário." });
   }
 }
