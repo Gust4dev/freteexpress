@@ -3,7 +3,7 @@ import { z } from "zod";
 import { Order } from "../models/orders";
 import { Transporter } from "../models/transporters";
 import { validatePriceAgainstPiso } from "../libs/antt";
-import { calcPisoMinimo } from "../libs/antt"; // Ensure this import exists or use validatePriceAgainstPiso logic
+
 
 const createSchema = z.object({
   origin: z.object({
@@ -26,7 +26,7 @@ export async function criarPedido(req: Request, res: Response) {
 
     const payload = createSchema.parse(req.body);
     
-    // Validate price (optional, depending on business logic)
+    // Valida preço
     const { ok, piso } = validatePriceAgainstPiso(
       payload.price,
       payload.distanceKm,
@@ -34,11 +34,11 @@ export async function criarPedido(req: Request, res: Response) {
     );
     
     if (!ok) {
-       // For now allowing it but maybe warning? Or enforcing?
+       // Permite por enquanto
        // return res.status(400).json({ error: "price_below_antt_minimum", piso });
     }
 
-    // Generate 4-digit confirmation code
+    // Gera código de confirmação
     const confirmationCode = Math.floor(1000 + Math.random() * 9000).toString();
 
     const order = await Order.create({
@@ -107,11 +107,11 @@ export async function atualizarStatusPedido(req: Request, res: Response) {
 
     const transporter = await Transporter.findOne({ userId });
     
-    // Check ownership
+    // Verifica permissão
     const isTransporterOwner = transporter && String(transporter._id) === String(order.transporterId);
     const isClientOwner = String(order.clientId) === userId;
 
-    // Permission checks
+    // Verificações de segurança
     if (status === "cancelled") {
       if (!isClientOwner && !isTransporterOwner && req.userRole !== "admin") {
         return res.status(403).json({ error: "forbidden" });
@@ -120,13 +120,13 @@ export async function atualizarStatusPedido(req: Request, res: Response) {
          return res.status(403).json({ error: "forbidden_cannot_cancel_unaccepted" });
       }
     } else {
-      // Driver status updates
+      // Atualizações do motorista
       if (!isTransporterOwner) {
         return res.status(403).json({ error: "forbidden" });
       }
     }
 
-    // PIN Verification for Delivery
+    // Verificação do PIN
     if (status === "delivered") {
       if (!code) {
         return res.status(400).json({ error: "missing_code" });
@@ -136,7 +136,7 @@ export async function atualizarStatusPedido(req: Request, res: Response) {
       }
     }
 
-    // Apply updates
+    // Aplica atualizações
     if (status === "cancelled" && isTransporterOwner) {
       order.transporterId = null;
       order.status = "created"; 
@@ -146,7 +146,7 @@ export async function atualizarStatusPedido(req: Request, res: Response) {
 
     await order.save();
     
-    // Return order without the code
+    // Retorna pedido sem código
     const orderObj = order.toObject();
     delete (orderObj as any).confirmationCode;
     
@@ -172,7 +172,7 @@ export async function getPedidoPorId(req: Request, res: Response) {
 
     const orderObj = order.toObject();
     
-    // Only show confirmation code to the client who created the order
+    // Exibe código apenas para o criador
     const isClientOwner = req.userRole === "client" && String(order.clientId._id) === req.userId;
     
     if (!isClientOwner) {

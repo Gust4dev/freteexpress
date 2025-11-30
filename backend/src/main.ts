@@ -23,7 +23,7 @@ dotenv.config();
 
 const app = express();
 
-// Segurança e parsing
+// Middlewares
 app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(cors());
 app.use(express.json());
@@ -41,7 +41,7 @@ app.use("/utils", utilsRoutes);
 app.use("/wallet", walletRoutes);
 app.use("/stats", statsRoutes);
 
-// Error handler centralizado
+// Tratamento de erros
 app.use(
   (
     err: any,
@@ -61,7 +61,7 @@ app.use(
   }
 );
 
-// Inicia DB e Server
+// Inicialização
 const MONGO = process.env.MONGO_URI ?? "mongodb://localhost:27017/frete";
 const PORT = Number(process.env.PORT ?? 3000);
 

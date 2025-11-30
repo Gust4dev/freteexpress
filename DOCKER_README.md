@@ -15,7 +15,7 @@ This project is containerized using Docker.
     ```
 
 2.  **Access the Application:**
-    - Frontend: [http://localhost:8080](http://localhost:8080)
+    - Frontend: [http://localhost:5050](http://localhost:5050)
     - Backend: [http://localhost:3000](http://localhost:3000)
     - MongoDB: `mongodb://localhost:27017`
 

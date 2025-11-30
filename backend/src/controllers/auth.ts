@@ -55,9 +55,7 @@ export async function loginUsuario(req: Request, res: Response) {
 }
 
 export async function logoutUsuario(req: Request, res: Response) {
-  // Em uma implementação JWT stateless, o logout é feito no cliente removendo o token.
-  // Para maior segurança, poderíamos adicionar o token a uma blacklist no Redis com TTL.
-  // Por enquanto, retornamos sucesso para o frontend limpar o estado.
+  // Logout stateless
   return res.json({ message: "logged_out" });
 }
 
@@ -78,14 +76,9 @@ export async function criarUsuario(req: Request, res: Response) {
       role: role ?? "client",
     });
 
-    // Se for motorista, cria o registro de Transporter (pendente de validação)
+    // Motorista: registro pendente
     if (role === "driver") {
-       // Import dinâmico ou mover Transporter para cá se necessário, 
-       // mas idealmente criaríamos o Transporter aqui.
-       // Como não tenho o model Transporter importado aqui, vou deixar um TODO 
-       // ou o usuário deve criar o perfil de motorista em um passo separado.
-       // Pela arquitetura atual, parece que o cadastro é simples.
-       // Vamos assumir que o motorista precisa completar o perfil depois.
+       // TODO: Implementar criação de Transporter
     }
 
     return res

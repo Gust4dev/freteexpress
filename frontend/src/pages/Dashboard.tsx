@@ -94,13 +94,13 @@ export default function Dashboard() {
   });
 
   const handleConfirmCancel = (reason: string) => {
-    console.log("Motivo do cancelamento:", reason);
+
     statusMutation.mutate({ id: cancelModal.orderId, status: "cancelled" });
   };
 
   const activeOrder = orders?.find(o => o.status === 'accepted' || o.status === 'in_route');
 
-  // Filtrar apenas pedidos com coordenadas válidas para o mapa
+  // Filtra pedidos com coordenadas
   const mapMarkers = orders?.filter(o => o.origin.coordinates && o.destination.coordinates).map(o => ({
     id: o._id,
     position: o.origin.coordinates!, 
@@ -132,7 +132,7 @@ export default function Dashboard() {
         className="max-w-7xl mx-auto space-y-8"
       >
         
-        {/* Cabeçalho */}
+        {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-end gap-4">
           <motion.div variants={item}>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Painel de Controle</h1>
@@ -182,10 +182,10 @@ export default function Dashboard() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* Coluna esquerda: Pedidos e Mapa */}
+          {/* Esquerda: Mapa e Lista */}
           <div className="lg:col-span-2 space-y-8">
             
-            {/* Mapa / Pedido ativo */}
+            {/* Mapa */}
             <motion.div variants={item} className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col h-[500px]">
               <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-white dark:bg-gray-800 z-10 relative">
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
@@ -209,7 +209,7 @@ export default function Dashboard() {
                   } : undefined}
                 />
                 
-                {/* Card flutuante do pedido */}
+                {/* Card do pedido */}
                 {activeOrder && (
                   <div className="absolute bottom-6 left-6 right-6 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md p-4 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 z-[400]">
                     <div className="flex items-center justify-between">
@@ -230,7 +230,7 @@ export default function Dashboard() {
               </div>
             </motion.div>
 
-            {/* Lista de pedidos recentes */}
+            {/* Lista de pedidos */}
             <motion.div variants={item} className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
               <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
                 <Package className="w-5 h-5 text-purple-500" />
@@ -276,10 +276,10 @@ export default function Dashboard() {
 
           </div>
 
-          {/* Coluna direita: Stats */}
+          {/* Direita: Estatísticas */}
           <div className="space-y-8">
             
-            {/* Gráfico de ganhos */}
+            {/* Gráfico */}
             <motion.div variants={item} className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
               <div className="flex items-center justify-between mb-6">
                 <div>
@@ -321,7 +321,7 @@ export default function Dashboard() {
               )}
             </motion.div>
 
-            {/* Card de avaliação */}
+            {/* Avaliação */}
             <motion.div variants={item} className="bg-gradient-to-br from-yellow-400 to-orange-500 rounded-3xl shadow-lg p-6 text-white relative overflow-hidden">
               <div className="absolute top-0 right-0 p-4 opacity-20">
                 <Star className="w-32 h-32 rotate-12" />
@@ -397,7 +397,7 @@ export default function Dashboard() {
   );
 }
 
-// Renderiza botões de ação
+// Botões de ação
 function renderDriverButton(order: Order, acceptMutation: any, statusMutation: any, setCancelModal: any) {
   const isMutating = acceptMutation.isPending || statusMutation.isPending;
   const showCancel = order.status === "accepted" || order.status === "in_route";

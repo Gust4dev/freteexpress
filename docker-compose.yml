@@ -27,7 +27,7 @@ services:
   frontend:
     build: ./frontend
     ports:
-      - "8080:80" # Expose frontend on port 8080 to avoid conflict if something else is on 80
+      - "5050:80" # Expose frontend on port 5050 to avoid conflict if something else is on 80
     depends_on:
       - backend
     networks:
