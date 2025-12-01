@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { z } from "zod";
 import { User } from "../models/user";
 import { Transporter } from "../models/transporters";
+import { logger } from "../logger";
 
 const updateSchema = z.object({
   name: z.string().optional(),
@@ -28,7 +29,7 @@ export async function uploadAvatar(req: Request, res: Response) {
 
     return res.json(user);
   } catch (err) {
-    console.error("uploadAvatar error", err);
+    logger.error("uploadAvatar error", err);
     return res.status(500).json({ error: "internal" });
   }
 }
@@ -40,7 +41,7 @@ export async function getMeuUsuario(req: Request, res: Response) {
     if (!user) return res.status(404).json({ error: "not_found" });
     return res.json(user);
   } catch (err) {
-    console.error("getMeuUsuario error", err);
+    logger.error("getMeuUsuario error", err);
     return res.status(500).json({ error: "internal" });
   }
 }
@@ -70,7 +71,7 @@ export async function atualizarMeuUsuario(req: Request, res: Response) {
     return res.json(user);
   } catch (err: any) {
     if (err?.issues) return res.status(400).json({ validation: err.issues });
-    console.error("atualizarMeuUsuario error", err);
+    logger.error("atualizarMeuUsuario error", err);
     return res.status(500).json({ error: "internal" });
   }
 }
@@ -82,7 +83,7 @@ export async function listarUsuarios(req: Request, res: Response) {
     const list = await User.find(q).select("-passwordHash").limit(200).lean();
     return res.json(list);
   } catch (err) {
-    console.error("listarUsuarios error", err);
+    logger.error("listarUsuarios error", err);
     return res.status(500).json({ error: "internal" });
   }
 }
@@ -94,7 +95,7 @@ export async function getUsuarioPorId(req: Request, res: Response) {
     if (!user) return res.status(404).json({ error: "not_found" });
     return res.json(user);
   } catch (err) {
-    console.error("getUsuarioPorId error", err);
+    logger.error("getUsuarioPorId error", err);
     return res.status(500).json({ error: "internal" });
   }
 }
@@ -106,7 +107,7 @@ export async function deletarUsuario(req: Request, res: Response) {
     if (!removed) return res.status(404).json({ error: "not_found" });
     return res.json({ ok: true });
   } catch (err) {
-    console.error("deletarUsuario error", err);
+    logger.error("deletarUsuario error", err);
     return res.status(500).json({ error: "internal" });
   }
 }

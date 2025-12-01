@@ -6,6 +6,7 @@ import { useAuth } from "./hooks/useAuth";
 import GlobalLoader from "./components/GlobalLoader";
 import { Toaster, toast } from "react-hot-toast";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 const Home = lazy(() => import("./pages/Home"));
 const WorkPage = lazy(() => import("./pages/WorkPage"));
@@ -37,48 +38,52 @@ export default function App() {
     }
   }, []);
 
+// ...
+
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100 transition-colors">
-        <Navbar darkMode={darkMode} toggleTheme={toggleTheme} />
-        <Toaster
-          position="top-center"
-          reverseOrder={false}
-          containerStyle={{
-            zIndex: 99999,
-          }}
-        />
+      <ErrorBoundary>
+        <div className="min-h-screen bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100 transition-colors">
+          <Navbar darkMode={darkMode} toggleTheme={toggleTheme} />
+          <Toaster
+            position="top-center"
+            reverseOrder={false}
+            containerStyle={{
+              zIndex: 99999,
+            }}
+          />
 
-        <Suspense fallback={<GlobalLoader />}>
-          <Routes>
-            <Route path="/" element={<><Home openAuth={() => setAuthOpen("login")} /></>} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            
-            {/* Rotas Protegidas */}
-            <Route element={<ProtectedRoute />}>
-              <Route path="/work" element={<WorkPage />} />
-              <Route path="/fazer-frete" element={<CriarFretePage />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/wallet" element={<WalletPage />} />
-              <Route path="/history" element={<HistoryPage />} />
-              <Route path="/find-freights" element={<FindFreightsPage />} />
-              <Route path="/rastreio/:id" element={<TrackingPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/suporte" element={<SupportPage />} />
-              <Route path="/order-confirmed/:id" element={<OrderConfirmedPage />} />
-              <Route path="/detalhes-corrida/:id" element={<OrderDetailsPage />} />
-            </Route>
-            
-            {/* Rotas Públicas Adicionais */}
-            <Route path="/buscar-fretes" element={<FindFreightsPage />} />
-            <Route path="/rastreio" element={<TrackingPage />} />
-            <Route path="/app/tracking/:id" element={<TrackingPage />} />
-          </Routes>
-        </Suspense>
+          <Suspense fallback={<GlobalLoader />}>
+            <Routes>
+              <Route path="/" element={<><Home openAuth={() => setAuthOpen("login")} /></>} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              
+              {/* Rotas Protegidas */}
+              <Route element={<ProtectedRoute />}>
+                <Route path="/work" element={<WorkPage />} />
+                <Route path="/fazer-frete" element={<CriarFretePage />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/wallet" element={<WalletPage />} />
+                <Route path="/history" element={<HistoryPage />} />
+                <Route path="/find-freights" element={<FindFreightsPage />} />
+                <Route path="/rastreio/:id" element={<TrackingPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/suporte" element={<SupportPage />} />
+                <Route path="/order-confirmed/:id" element={<OrderConfirmedPage />} />
+                <Route path="/detalhes-corrida/:id" element={<OrderDetailsPage />} />
+              </Route>
+              
+              {/* Rotas Públicas Adicionais */}
+              <Route path="/buscar-fretes" element={<FindFreightsPage />} />
+              <Route path="/rastreio" element={<TrackingPage />} />
+              <Route path="/app/tracking/:id" element={<TrackingPage />} />
+            </Routes>
+          </Suspense>
 
-        {authOpen && <AuthCard mode={authOpen} onClose={() => setAuthOpen(null)} />}
-      </div>
+          {authOpen && <AuthCard mode={authOpen} onClose={() => setAuthOpen(null)} />}
+        </div>
+      </ErrorBoundary>
     </BrowserRouter>
   );
 }

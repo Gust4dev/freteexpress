@@ -1,46 +1,35 @@
-import { Router, Request, Response } from "express";
-import { z } from "zod";
-import { User } from "../models/user";
-import auth from "../middleware/auth";
+import { Request, Response } from "express";
+import mongoose from "mongoose";
+import { logger } from "../logger";
 
-const router = Router();
-
-const updateSchema = z.object({
-  name: z.string().min(2).optional(),
-  phone: z.string().min(8).optional(),
-});
-
-// Pega dados do user
-router.get("/me", auth(), async (req: Request, res: Response) => {
+export async function checkHealth(_req: Request, res: Response) {
   try {
-    const id = req.userId;
-    if (!id) return res.status(401).json({ error: "unauthenticated" });
-    const user = await User.findById(id).select("-passwordHash").lean();
-    if (!user) return res.status(404).json({ error: "not_found" });
-    return res.json(user);
+    const dbState = mongoose.connection.readyState;
+    const dbStatusMap: Record<number, string> = {
+      0: "disconnected",
+      1: "connected",
+      2: "connecting",
+      3: "disconnecting",
+    };
+
+    const status = dbStatusMap[dbState] || "unknown";
+
+    if (dbState !== 1) {
+      logger.error(`Health check failed: DB status is ${status}`);
+      return res.status(503).json({
+        status: "error",
+        message: "Database not connected",
+        db_status: status,
+      });
+    }
+
+    return res.status(200).json({
+      status: "ok",
+      message: "System operational",
+      db_status: status,
+    });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "internal" });
+    logger.error("Health check error", err);
+    return res.status(500).json({ status: "error", message: "Internal server error" });
   }
-});
-
-// Atualiza dados do user
-router.patch("/me", auth(), async (req: Request, res: Response) => {
-  try {
-    const id = req.userId;
-    if (!id) return res.status(401).json({ error: "unauthenticated" });
-
-    const payload = updateSchema.parse(req.body);
-    const user = await User.findByIdAndUpdate(id, payload, { new: true })
-      .select("-passwordHash")
-      .lean();
-    if (!user) return res.status(404).json({ error: "not_found" });
-    return res.json(user);
-  } catch (err: any) {
-    if (err?.issues) return res.status(400).json({ validation: err.issues });
-    console.error(err);
-    return res.status(500).json({ error: "internal" });
-  }
-});
-
-export default router;
+}

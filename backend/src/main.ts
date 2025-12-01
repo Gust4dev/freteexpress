@@ -1,5 +1,4 @@
 ﻿import express from "express";
-import dotenv from "dotenv";
 import mongoose from "mongoose";
 import helmet from "helmet";
 import cors from "cors";
@@ -7,6 +6,8 @@ import morgan from "morgan";
 import path from "path";
 import multer from "multer";
 import { globalLimiter } from "./middleware/rateLimiter";
+import { config } from "./config";
+import { logger } from "./logger";
 
 // Rotas
 import authRoutes from "./routes/auth";
@@ -19,12 +20,10 @@ import utilsRoutes from "./routes/utils";
 import walletRoutes from "./routes/wallet";
 import statsRoutes from "./routes/stats";
 
-dotenv.config();
-
 const app = express();
 
-const MONGO = process.env.MONGO_URI || "mongodb://localhost:27017/freteexpress";
-const PORT = process.env.PORT || 3000;
+const MONGO = config.MONGO_URI;
+const PORT = config.PORT;
 
 // Middlewares
 app.set('trust proxy', 1); // Required for rate limiting behind proxies
@@ -56,7 +55,7 @@ app.use(
     res: express.Response,
     _next: express.NextFunction
   ) => {
-    console.error("Unhandled error:", err);
+    logger.error("Unhandled error:", err);
 
     if (err instanceof multer.MulterError) {
       return res.status(400).json({ error: "upload_error", message: err.message });
@@ -76,11 +75,11 @@ mongoose
   .connect(MONGO)
   .then(() => {
     app.listen(PORT, () => {
-      console.log(`Server listening on http://localhost:${PORT}`);
+      logger.info(`Server listening on http://localhost:${PORT}`);
     });
   })
   .catch((err) => {
-    console.error("Failed to connect to MongoDB:", err);
+    logger.error("Failed to connect to MongoDB:", err);
     process.exit(1);
   });
 
