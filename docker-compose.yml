@@ -19,6 +19,9 @@ services:
       - MONGO_URI=mongodb://mongo:27017/frete-express
       - JWT_SECRET=freteexpress_secret_key_change_me_in_prod
       # Add other backend env vars here or use env_file
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
     depends_on:
       - mongo
     networks:

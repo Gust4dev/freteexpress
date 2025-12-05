@@ -20,6 +20,7 @@ declare global {
  */
 export default function authMiddleware(allowedRoles?: Role | Role[]) {
   return async (req: Request, res: Response, next: NextFunction) => {
+    console.log(`AuthMiddleware: Processing ${req.method} ${req.path}`);
     try {
       const authHeader = String(req.headers['authorization'] ?? '');
       if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -74,6 +75,7 @@ export default function authMiddleware(allowedRoles?: Role | Role[]) {
       // Verifica se a role tá liberada
       if (!allowed.includes(req.userRole)) return res.status(403).json({ error: 'forbidden_role' });
 
+      console.log(`AuthMiddleware: Authenticated user ${req.userId} with role ${req.userRole}`);
       return next();
     } catch (err) {
       console.error('auth middleware error', err);

@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import { useSocket } from "../contexts/SocketContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   listFretes,
@@ -19,7 +20,6 @@ import {
   Star, 
   TrendingUp, 
   Truck,
-  CheckCircle,
   AlertCircle,
   HelpCircle
 } from "lucide-react";
@@ -40,9 +40,28 @@ type Order = {
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { socket } = useSocket();
   const queryClient = useQueryClient();
   const [cancelModal, setCancelModal] = useState({ open: false, orderId: "" });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (socket) {
+      const handleUpdate = () => {
+        queryClient.invalidateQueries({ queryKey: ["orders"] });
+        queryClient.invalidateQueries({ queryKey: ["driverStats"] });
+        try { new Audio("/notification.mp3").play().catch(() => {}); } catch {}
+      };
+
+      socket.on("order_update", handleUpdate);
+      socket.on("new_order", handleUpdate);
+
+      return () => {
+        socket.off("order_update", handleUpdate);
+        socket.off("new_order", handleUpdate);
+      };
+    }
+  }, [socket, queryClient]);
 
   const {
     data: ordersData,
@@ -94,7 +113,6 @@ export default function Dashboard() {
   });
 
   const handleConfirmCancel = (reason: string) => {
-
     statusMutation.mutate({ id: cancelModal.orderId, status: "cancelled" });
   };
 

@@ -5,9 +5,11 @@ import cors from "cors";
 import morgan from "morgan";
 import path from "path";
 import multer from "multer";
+import http from "http";
 import { globalLimiter } from "./middleware/rateLimiter";
 import { config } from "./config";
 import { logger } from "./logger";
+import { socketService } from "./socket";
 
 // Rotas
 import authRoutes from "./routes/auth";
@@ -26,12 +28,17 @@ const MONGO = config.MONGO_URI;
 const PORT = config.PORT;
 
 // Middlewares
-app.set('trust proxy', 1); // Required for rate limiting behind proxies
+app.set('trust proxy', 1);
 app.use(globalLimiter);
 app.use(helmet({ crossOriginResourcePolicy: false }));
-app.use(cors({
+
+const corsOptions = {
+  origin: "*",
   exposedHeaders: ['RateLimit-Limit', 'RateLimit-Remaining', 'RateLimit-Reset', 'Retry-After']
-}));
+};
+
+app.use(cors(corsOptions));
+
 app.use(express.json());
 app.use(morgan("dev"));
 app.use("/uploads", express.static(path.resolve(__dirname, "..", "..", "uploads")));
@@ -74,7 +81,10 @@ mongoose.set("strictQuery", false);
 mongoose
   .connect(MONGO)
   .then(() => {
-    app.listen(PORT, () => {
+    const httpServer = http.createServer(app);
+    socketService.initialize(httpServer, corsOptions);
+
+    httpServer.listen(PORT, () => {
       logger.info(`Server listening on http://localhost:${PORT}`);
     });
   })

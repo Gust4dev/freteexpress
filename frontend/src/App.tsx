@@ -65,7 +65,7 @@ export default function App() {
                 <Route path="/fazer-frete" element={<CriarFretePage />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/wallet" element={<WalletPage />} />
-                <Route path="/history" element={<HistoryPage />} />
+                <Route path="/historico" element={<HistoryPage />} />
                 <Route path="/find-freights" element={<FindFreightsPage />} />
                 <Route path="/rastreio/:id" element={<TrackingPage />} />
                 <Route path="/profile" element={<ProfilePage />} />

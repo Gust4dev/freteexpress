@@ -3,6 +3,7 @@ import { z } from "zod";
 import { Order } from "../models/orders";
 import { Transporter } from "../models/transporters";
 import { validatePriceAgainstPiso } from "../libs/antt";
+import { socketService } from "../socket";
 
 const createSchema = z.object({
   origin: z.object({
@@ -19,13 +20,17 @@ const createSchema = z.object({
 });
 
 export async function criarPedido(req: Request, res: Response) {
+  console.log("criarPedido: Started processing request");
   try {
     const clientId = req.userId;
+    console.log("criarPedido: Checking userId", clientId);
     if (!clientId) return res.status(401).json({ error: "unauthenticated", message: "Você precisa estar logado." });
 
+    console.log("criarPedido: Parsing body");
     const payload = createSchema.parse(req.body);
     
     // Valida preço
+    console.log("criarPedido: Validating price");
     const { ok, piso } = validatePriceAgainstPiso(
       payload.price,
       payload.distanceKm,
@@ -40,6 +45,7 @@ export async function criarPedido(req: Request, res: Response) {
     // Gera código de confirmação
     const confirmationCode = Math.floor(1000 + Math.random() * 9000).toString();
 
+    console.log("criarPedido: Creating order in DB");
     const order = await Order.create({
       clientId,
       transporterId: null,
@@ -52,8 +58,14 @@ export async function criarPedido(req: Request, res: Response) {
       confirmationCode,
       status: "created",
     });
+    console.log("criarPedido: Order created", order._id);
 
-    return res.status(201).json(order);
+    const orderObj = order.toObject();
+    console.log("criarPedido: Emitting socket event");
+    socketService.emit("drivers", "new_order", orderObj);
+    console.log("criarPedido: Socket event emitted");
+
+    return res.status(201).json(orderObj);
   } catch (err: any) {
     if (err?.issues) return res.status(400).json({ error: "validation_error", message: "Dados inválidos.", details: err.issues });
     console.error("criarPedido error", err);
@@ -82,6 +94,8 @@ export async function aceitarPedido(req: Request, res: Response) {
     order.transporterId = transporter._id;
     order.status = "accepted";
     await order.save();
+
+    socketService.emit(`user_${order.clientId}`, "order_update", order);
 
     return res.json(order);
   } catch (err) {
@@ -149,6 +163,8 @@ export async function atualizarStatusPedido(req: Request, res: Response) {
     const orderObj = order.toObject();
     delete (orderObj as any).confirmationCode;
     
+    socketService.emit(`user_${order.clientId}`, "order_update", orderObj);
+
     return res.json(orderObj);
   } catch (err: any) {
     console.error("atualizarStatusPedido error", err);
